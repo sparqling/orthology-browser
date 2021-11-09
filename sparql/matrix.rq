@@ -1,0 +1,12 @@
+#!/usr/bin/env spang2
+# @endpoint https://sparql.omabrowser.org/sparql/
+# @option -vac --time
+
+PREFIX orth: <http://purl.org/net/orth#>
+
+SELECT *
+WHERE {
+  ?cluster a orth:OrthologsCluster .
+  ?cluster orth:hasHomologousMember+ ?member .
+}
+LIMIT 10
