@@ -1,23 +1,23 @@
 #!/usr/bin/env spang2
 # @endpoint https://sparql.omabrowser.org/sparql/
-# @option -vac --time
+# @option --time
 
 PREFIX orth: <http://purl.org/net/orth#>
 PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
 PREFIX lscr: <http://purl.org/lscr#>
 
-SELECT DISTINCT ?uniprot ?taxid2 ?uniprot2
+SELECT DISTINCT ?uniprot_human ?taxid ?uniprot
 WHERE {
   ?cluster a orth:OrthologsCluster ;
-      orth:hasHomologousMember+ ?member, ?member2 .
+      orth:hasHomologousMember+ ?member_human, ?member .
+  ?member_human a orth:Protein ;
+      lscr:xrefUniprot ?uniprot_human ;
+      orth:organism ?organism_human .
+  ?organism_human obo:RO_0002162 upTax:9606 .
   ?member a orth:Protein ;
       lscr:xrefUniprot ?uniprot ;
       orth:organism ?organism .
-  ?organism obo:RO_0002162 upTax:9606 .
-  ?member2 a orth:Protein ;
-      lscr:xrefUniprot ?uniprot2 ;
-      orth:organism ?organism2 .
-  ?organism2 obo:RO_0002162 ?taxid2 .
-  VALUES ?uniprot { uniprot:Q6UY14 uniprot:P78563 }
-  VALUES ?taxid2 { upTax:9595 upTax:9598 }
+  ?organism obo:RO_0002162 ?taxid .
+  VALUES ?uniprot_human { uniprot:Q6UY14 uniprot:P78563 }
+  VALUES ?taxid { upTax:9595 upTax:9598 }
 }
