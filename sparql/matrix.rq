@@ -4,9 +4,14 @@
 
 PREFIX orth: <http://purl.org/net/orth#>
 
-SELECT *
+SELECT ?cluster ?member2 ?organism2
 WHERE {
-  ?cluster a orth:OrthologsCluster .
-  ?cluster orth:hasHomologousMember+ ?member .
+  ?cluster a orth:OrthologsCluster ;
+      orth:hasHomologousMember+ ?member, ?member2 .
+  ?member a orth:Protein ;
+      orth:organism ?organism .
+  ?organism obo:RO_0002162 upTax:9606 .
+  ?member2 a orth:Protein ;
+      orth:organism ?organism2 .
 }
 LIMIT 10
