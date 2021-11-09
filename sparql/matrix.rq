@@ -3,8 +3,9 @@
 # @option -vac --time
 
 PREFIX orth: <http://purl.org/net/orth#>
+PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
 
-SELECT ?cluster ?member2 ?organism2
+SELECT ?cluster ?member2 ?organism2 ?taxid2
 WHERE {
   ?cluster a orth:OrthologsCluster ;
       orth:hasHomologousMember+ ?member, ?member2 .
@@ -13,5 +14,7 @@ WHERE {
   ?organism obo:RO_0002162 upTax:9606 .
   ?member2 a orth:Protein ;
       orth:organism ?organism2 .
+  ?organism2 obo:RO_0002162 ?taxid2 .
+  VALUES ?taxid2 { upTax:9595 upTax:9598 }
 }
 LIMIT 10
