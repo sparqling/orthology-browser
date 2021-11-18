@@ -1,0 +1,158 @@
+#language-div {
+    vertical-align: middle;
+}
+
+
+/* tables */
+table.tablesorter {
+    font-family: Arial;
+    background-color: #FFF;
+    font-size: 12pt;
+    width: 100%;
+    text-align: left;
+}
+
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+    background-color: #eee8aa;
+    border-collapse: collapse;
+    border-spacing: 1px;
+    border: 1px #E3E3E3 solid;
+
+    font-size: 12pt;
+    padding: 1px;
+}
+
+table.tablesorter thead tr .tablesorter-header {
+    font-family: Arial;
+}
+
+table.tablesorter tbody td {
+    border: 1px #E3E3E3 solid;
+    border-width: 0 0 1px 1px;
+    padding: 1px;
+    vertical-align: top;
+}
+
+table.tablesorter tbody tr.odd td {
+    background-color: #F0F0F6;
+}
+
+table.tablesorter thead tr .tablesorter-headerAsc {
+    background-color: linen;
+}
+
+table.tablesorter thead tr .tablesorter-headerDesc {
+    background-color: beige;
+}
+
+
+#dbpedia {
+    font-family: Arial;
+    text-align: left;
+    background-color: #fff;
+}
+
+#dbpedia th {
+    background-color: #eee8aa;
+}
+
+#dbpedia thead th tr {
+    border-collapse: collapse;
+    border-spacing: 1px;
+    border: 1px #E3E3E3 solid;
+    padding: 1px;
+}
+
+#dbpedia td {
+    border: 1px #E3E3E3 solid;
+    border-width: 0 0 1px 1px;
+    padding: 1px;
+}
+
+#taxonomy {
+    font-family: Arial;
+    text-align: left;
+    background-color: #fff;
+}
+
+#taxonomy th {
+    background-color: #eee8aa;
+    border: 1px #E3E3E3 solid;
+}
+
+#taxonomy tr {
+    border: 1px #fff solid;
+    border-width: 0 0 1px 1px;
+}
+
+#taxonomy td {
+    border: 1px #fff solid;
+    border-width: 0 0 1px 1px;
+}
+
+/* .genome td:hover { */
+/*     background-color: #e3e3e3; */
+/* } */
+
+.taxon_clickable {
+    cursor: hand;
+    cursor: pointer;
+}
+
+.rank_clickable {
+    cursor: hand;
+    cursor: pointer;
+}
+
+/* h3 { */
+/*     background-color: #eee8aa; */
+/*     border: 1px #E3E3E3 solid; */
+/* } */
+
+#selected_genome_num {
+    padding: 5px 10px
+}
+
+#selected {
+    border-collapse: collapse;
+    background-color: #fff;
+}
+
+.add_genome img {
+    cursor: pointer;
+}
+
+.btn {
+    background: -moz-linear-gradient(top, #0099CC 0%, #006699);
+    background: -webkit-gradient(linear, left top, left bottom, from(#0099CC), to(#006699));
+    color: #FFF;
+    padding: 2px 5px;
+    border: 1px solid #DDD;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    /* width: 150px; */
+    text-decoration: none;
+    /* font-weight: bold; */
+    text-align: center;
+    font-size: 13px;
+    display: block;
+
+    cursor: pointer;
+}
+
+button {
+    width: auto;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: 0;
+    font-size: 0;
+    line-height: 0;
+    overflow: visible;
+    cursor: pointer;
+}
+
+.thin {
+    font-weight: normal;
+}

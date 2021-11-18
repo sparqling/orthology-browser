@@ -1,0 +1,36 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Orthology Browser</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+  <link rel="stylesheet" href="css/style.css" type="text/css" media="print, projection, screen" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src='https://cdn.jsdelivr.net/gh/sparqling/spang@41f3ce3/js/spang.min.js'></script>
+  <script src="ortholog.js"></script>
+</head>
+
+<body>
+
+<div class="ui-widget">
+
+  <!-- List of genomes -->
+  <div id="counter_div"></div>
+  <table border="0" id="details" class="tablesorter"></table>
+
+</div>
+
+<br><br><br>
+<select style="margin-left: 10px;" id="database-select">
+  <option>OMA</option>
+  <option>Ortho DB</option>
+  <option>Meta Prediction</option>
+</select>
+<div id="chart"></div>
+</body>
+
+</html>
