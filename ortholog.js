@@ -35,26 +35,10 @@ $('#database-select').on('change', () => {
   renderChart();
 });
 
-function generateData(count, yrange) {
-  var i = 0;
-  var series = [];
-  var labels = ['Q92887', 'P10323', 'P15234', 'Q9UK85', 'Q99645'];
-  while (i < 5) {
-    var x = labels[i];
-    var y = Math.floor(Math.random() * (yrange.max - yrange.min + 1)) + yrange.min;
-    series.push({
-      x: x,
-      y: y
-    });
-    i++;
-  }
-  return series;
-}
-
 let chart = null;
 
-
 let taxa = [];
+let tooltips = {};
 let series = null;
 
 queryBySpang("sparql/matrix.rq", {}, (result) => {
@@ -75,11 +59,17 @@ queryBySpang("sparql/matrix.rq", {}, (result) => {
     else
       taxonProtMap[taxon][baseProt].push(taxProt);
   }
-  series = taxa.map((taxon) => {
+  
+  tooltips = {};
+  series = taxa.map((taxon, i) => {
     let protMap = taxonProtMap[taxon];
     return {
       name: taxon,
-      data: baseProteins.map((baseProt) => { return {
+      data: baseProteins.map((baseProt, j) => {
+        if(!tooltips[i])
+          tooltips[i] = {};
+        tooltips[i][j] = protMap[baseProt] ?? '';
+        return {
         x: baseProt,
         y: protMap[baseProt]?.length
       };
@@ -130,6 +120,13 @@ function renderChart() {
     },
     yaxis: {
       reversed: true
+    },
+    tooltip: {
+      custom: function({series, seriesIndex, dataPointIndex, w}) {
+        return '<div class="arrow_box">' +
+          '<span>' + tooltips[seriesIndex][dataPointIndex].join(', ') + '</span>' +
+          '</div>'
+      }
     }
   };
 
