@@ -1,10 +1,36 @@
-let haystack = [];
-let currentTaxonName = null;
-let scientificNameMap = {}; // Display name => Scientific name
-let displayNameMap = {}; // Scientific name => Display name
-
 const endpoint = 'https://orth.dbcls.jp/sparql-proxy';
 
+const taxonPrefix = "taxonomy-browser-proteome-";
+const proteinPrefix = 'go-browser-protein-';
+
+
+let chart = null;
+
+let baseTaxon = '9606';
+let comparedTaxa = [];
+let proteins = [];
+let tooltips = {};
+let series = null;
+
+
+Storage.prototype.getObject = function(key) {
+  let val = this.getItem(key);
+  return val && JSON.parse(val) || {};
+}
+
+
+for (let i = 0; i < localStorage.length; i++) {
+  let key = localStorage.key(i);
+  if (key.startsWith(taxonPrefix)) {
+    let taxonId = localStorage.getObject(key)?.genome_taxid;
+    if(taxonId)
+      comparedTaxa.push(taxonId);
+  } else if(key.startsWith(proteinPrefix)) {
+    let uniprotId = localStorage.getObject(key)?.up_id;
+    if(uniprotId)
+      proteins.push(uniprotId);
+  }
+}
 
 function queryBySpang(queryUrl, param, callback, target_end = null) {
   $.get(queryUrl, (query) => {
@@ -35,20 +61,14 @@ $('#database-select').on('change', () => {
   renderChart();
 });
 
-let chart = null;
-
-let taxa = [];
-let tooltips = {};
-let series = null;
-
-queryBySpang("sparql/matrix.rq", {}, (result) => {
-  let baseTaxon = '9606';
-  taxa = [baseTaxon, '9595', '9598'];
-  let baseProteins = ['P78563', 'Q6UY14'];
+queryBySpang("sparql/matrix.rq", { taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon).join(' '),
+                                                  proteins: proteins.map((protein) => 'uniprot:' + protein).join(' ')
+                                                }, (result) => {
+  let taxa = [baseTaxon].concat(comparedTaxa);
   let taxonProtMap = {};
   for(let taxon of taxa)
     taxonProtMap[taxon] = {};
-  for(let prot of baseProteins) 
+  for(let prot of proteins) 
     taxonProtMap[baseTaxon][prot] = [prot];
   for(let binding of result.results.bindings) {
     let taxon = binding.taxid.value.replace(/.*\//, '');
@@ -65,13 +85,13 @@ queryBySpang("sparql/matrix.rq", {}, (result) => {
     let protMap = taxonProtMap[taxon];
     return {
       name: taxon,
-      data: baseProteins.map((baseProt, j) => {
+      data: proteins.map((protein, j) => {
         if(!tooltips[i])
           tooltips[i] = {};
-        tooltips[i][j] = protMap[baseProt] ?? '';
+        tooltips[i][j] = protMap[protein] ?? '';
         return {
-        x: baseProt,
-        y: protMap[baseProt]?.length
+        x: protein,
+        y: protMap[protein]?.length || 0
       };
       })
     }
@@ -85,16 +105,6 @@ for (var i=0; i<localStorage.length; i++) {
     taxa.push(key);
   }
 }
-
-series = taxa.map((taxon) => {
-  return {
-    name: taxon,
-    data: generateData(18, {
-      min: 0,
-      max: 90
-    })
-  };
-});
 
 function renderChart() {
   if(chart)

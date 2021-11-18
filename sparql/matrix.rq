@@ -18,7 +18,8 @@ WHERE {
       lscr:xrefUniprot ?uniprot ;
       orth:organism ?organism .
   ?organism obo:RO_0002162 ?taxid .
-  VALUES ?uniprot_human { uniprot:Q6UY14 uniprot:P78563 }
-  VALUES ?taxid { upTax:9595 upTax:9598 }
+  VALUES ?uniprot_human { {{proteins}} }
+  VALUES ?taxid { {{taxa}} }
 }
 ORDER BY ?uniprot_human ?taxid
+    
