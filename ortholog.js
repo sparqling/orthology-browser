@@ -61,6 +61,8 @@ for (let i = 0; i < localStorage.length; i++) {
   }
 }
 
+proteins.sort((protein1, protein2) => protein1.mnemonic < protein2.mnemonic ? -1 : 1);
+
 // Assign unique displayed name to avoid conflict
 for(let [mnemonic, proteins] of Object.entries(mapMnemonicToProteins)) {
   if(proteins.length === 1) {
@@ -127,21 +129,25 @@ queryBySpang("sparql/matrix.rq", { taxa: comparedTaxa.map((taxon) => 'upTax:' + 
   tooltips = {};
   series = taxIdList.map((taxId, i) => {
     let protMap = taxonProtMap[taxId];
+    let data = proteins.map((protein, j) => {
+      let up_id = protein.up_id;
+      let paralogNum = protMap[up_id]?.length || 0;
+      if (!tooltips[i])
+        tooltips[i] = {};
+      tooltips[i][j] = protMap[up_id] ?? '';
+      return {
+        x: protein.displayedName,
+        y: paralogNum
+      };
+    });
+    let cellNum = data.reduce((accum, elem) => accum + (elem.y > 0 ? 1 : 0), 0);
     return {
       name: mapTaxIdToTaxa[taxId].displayedName,
-      data: proteins.map((protein, j) => {
-        let up_id = protein.up_id;
-        let paralogNum = protMap[up_id]?.length || 0;
-        if(!tooltips[i])
-          tooltips[i] = {};
-        tooltips[i][j] = protMap[up_id] ?? '';
-        return {
-          x: protein.displayedName,
-          y: paralogNum 
-        };
-     })
-    }
+      data, 
+      cellNum
+   };
   });
+  series.sort((row1, row2) => row2.cellNum - row1.cellNum);
   renderChart();
 }, "https://orth.dbcls.jp/sparql-proxy-oma");
 
