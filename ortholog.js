@@ -213,6 +213,7 @@ function renderChart() {
     }
   };
   chart = new ApexCharts(document.querySelector("#chart"), options);
+  $('#loading-image').hide();
   chart.render();
 
   tippy('.apexcharts-xaxis-label', {
