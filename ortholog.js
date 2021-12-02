@@ -13,6 +13,7 @@ let tooltips = {};
 let series = null;
 
 let maxParalogNum = 0;
+let savedTaxonData = {}, savedProteinData = {};
 
 Storage.prototype.getObject = function(key) {
   let val = this.getItem(key);
@@ -24,12 +25,16 @@ for (let i = 0; i < localStorage.length; i++) {
   let key = localStorage.key(i);
   if (key.startsWith(taxonPrefix)) {
     let taxonId = localStorage.getObject(key)?.genome_taxid;
-    if(taxonId)
+    if(taxonId) {
       comparedTaxa.push(taxonId);
+      savedTaxonData[taxonId] = localStorage.getObject(key);
+    }
   } else if(key.startsWith(proteinPrefix)) {
     let uniprotId = localStorage.getObject(key)?.up_id;
-    if(uniprotId)
+    if(uniprotId) {
       proteins.push(uniprotId);
+      savedProteinData[uniprotId] = localStorage.getObject(key);
+    }
   }
 }
 
@@ -111,7 +116,7 @@ for (var i=0; i<localStorage.length; i++) {
 }
 
 function renderChart() {
-  if(chart)
+  if (chart)
     chart.destroy();
   let options = {
     series,
@@ -168,17 +173,30 @@ function renderChart() {
       reversed: true
     },
     tooltip: {
-      custom: function({series, seriesIndex, dataPointIndex, w}) {
-        let tips = tooltips[seriesIndex][dataPointIndex]; 
-        if(!tips)
+      custom: function ({series, seriesIndex, dataPointIndex, w}) {
+        let tips = tooltips[seriesIndex][dataPointIndex];
+        if (!tips)
           return '';
         return '<div class="arrow_box">' +
-          '<span>' + tips.join(', ') + '</span>' +
+          '<span>' + tips.join('<br>') + '</span>' +
           '</div>';
-      }
+      },
     }
   };
-
   chart = new ApexCharts(document.querySelector("#chart"), options);
   chart.render();
+
+  tippy('.apexcharts-xaxis-label', {
+    content: (elem) => {
+      let protId = elem.getElementsByTagName('title')?.[0].innerHTML;
+      let data = savedProteinData[protId];
+      let tip = "<ui>";
+      for(let [key, val] of Object.entries(data)) {
+        tip += `<li>${key}: ${val}</\li>`;
+      }
+      tip += "</ui>";
+      return tip;
+    },
+    allowHTML: true
+  });
 }
