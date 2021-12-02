@@ -6,14 +6,33 @@ const proteinPrefix = 'go-browser-protein-';
 
 let chart = null;
 
-let baseTaxon = '9606';
+let baseTaxon =  {
+  genome_taxid:"9606",
+  up_id_url:"http://purl.uniprot.org/proteomes/UP000005640",
+  up_id:"UP000005640",
+  types:"http://purl.uniprot.org/core/Proteome, http://purl.uniprot.org/core/Reference_Proteome, http://purl.uniprot.org/core/Representative_Proteome",
+  organism_name:"Homo sapiens (Human)",
+  displayedName:"Human",
+  n_genes:20596,
+  n_isoforms:76225,
+  cpd_label:"Outlier",
+  busco_complete:"6163",
+  busco_single:"2364",
+  busco_multi:"3799",
+  busco_fragmented:"12",
+  busco_missing:"17",
+  assembly:"GCA_000001405.27"
+};
 let comparedTaxa = [];
 let proteins = [];
 let tooltips = {};
 let series = null;
 
 let maxParalogNum = 0;
-let savedTaxonData = {}, savedProteinData = {};
+let mapNameToTaxa = {}, mapTaxIdToTaxa = {}, mapDisplayedNameToProtein = {};
+
+mapNameToTaxa[baseTaxon.displayedName] = baseTaxon;
+mapTaxIdToTaxa[baseTaxon.genome_taxid] = baseTaxon;
 
 Storage.prototype.getObject = function(key) {
   let val = this.getItem(key);
@@ -24,16 +43,17 @@ for (let i = 0; i < localStorage.length; i++) {
   let key = localStorage.key(i);
   if (key.startsWith(taxonPrefix)) {
     let taxonId = localStorage.getObject(key)?.genome_taxid;
-    if(taxonId && taxonId != baseTaxon) {
-      comparedTaxa.push(taxonId);
-      savedTaxonData[taxonId] = localStorage.getObject(key);
+    if(taxonId && taxonId !== baseTaxon.genome_taxid) {
+      let entry = localStorage.getObject(key);
+      entry.displayedName = entry.organism_name.replaceAll(/^.*\((.*)\)/g, '$1');
+      comparedTaxa.push(entry);
+      mapNameToTaxa[entry.displayedName] = entry;
+      mapTaxIdToTaxa[taxonId] = entry;
     }
   } else if(key.startsWith(proteinPrefix)) {
-    let uniprotId = localStorage.getObject(key)?.up_id;
-    if(uniprotId) {
-      proteins.push(uniprotId);
-      savedProteinData[uniprotId] = localStorage.getObject(key);
-    }
+    let entry = localStorage.getObject(key);
+    proteins.push(entry);
+    mapDisplayedNameToProtein[entry.up_id] = entry;
   }
 }
 
@@ -66,16 +86,16 @@ $('#database-select').on('change', () => {
   renderChart();
 });
 
-queryBySpang("sparql/matrix.rq", { taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon).join(' '),
-                                                  proteins: proteins.map((protein) => 'uniprot:' + protein).join(' ')
+queryBySpang("sparql/matrix.rq", { taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon.genome_taxid).join(' '),
+                                                  proteins: proteins.map((protein) => 'uniprot:' + protein.up_id).join(' ')
                                                 }, (result) => {
   maxParalogNum = 0;
-  let taxa = [baseTaxon].concat(comparedTaxa);
+  let taxIdList = [baseTaxon.genome_taxid].concat(comparedTaxa.map((taxon) => taxon.genome_taxid));
   let taxonProtMap = {};
-  for(let taxon of taxa)
+  for(let taxon of taxIdList)
     taxonProtMap[taxon] = {};
-  for(let prot of proteins) 
-    taxonProtMap[baseTaxon][prot] = [prot];
+  for(let prot of proteins.map((prot) => prot.up_id)) 
+    taxonProtMap[baseTaxon.genome_taxid][prot] = [prot];
   for(let binding of result.results.bindings) {
     let taxon = binding.taxid.value.replace(/.*\//, '');
     let baseProt = binding.uniprot_human.value.replace(/.*\//, '');;
@@ -88,31 +108,25 @@ queryBySpang("sparql/matrix.rq", { taxa: comparedTaxa.map((taxon) => 'upTax:' + 
   }
   
   tooltips = {};
-  series = taxa.map((taxon, i) => {
-    let protMap = taxonProtMap[taxon];
+  series = taxIdList.map((taxId, i) => {
+    let protMap = taxonProtMap[taxId];
     return {
-        name: taxon,
-        data: proteins.map((protein, j) => {
-          let paralogNum = protMap[protein]?.length || 0;
-          if(!tooltips[i])
-            tooltips[i] = {};
-          tooltips[i][j] = protMap[protein] ?? '';
-          return {
-          x: protein,
+      name: mapTaxIdToTaxa[taxId].displayedName,
+      data: proteins.map((protein, j) => {
+        let up_id = protein.up_id;
+        let paralogNum = protMap[up_id]?.length || 0;
+        if(!tooltips[i])
+          tooltips[i] = {};
+        tooltips[i][j] = protMap[up_id] ?? '';
+        return {
+          x: `${protein.mnemonic} (${protein.up_id})`,
           y: paralogNum 
         };
-      })
+     })
     }
   });
   renderChart();
 }, "https://orth.dbcls.jp/sparql-proxy-oma");
-
-for (var i=0; i<localStorage.length; i++) {
-  var key = localStorage.key(i);
-  if (key.startsWith('UP0')) {
-    taxa.push(key);
-  }
-}
 
 function renderChart() {
   if (chart)
@@ -142,18 +156,6 @@ function renderChart() {
               name: ' ',
               color: '#008FFB'
             },
-            // {
-            //   from: max / 3,
-            //   to: max * 2 / 3,
-            //   name: ' ',
-            //   color: '#FF8F00'
-            // },
-            // {
-            //   from: max * 2 / 3,
-            //   to: max,
-            //   name: ' ',
-            //   color: '#FF2200'
-            // },
           ]
         },
       }
@@ -166,7 +168,10 @@ function renderChart() {
       inverseOrder: true
     },
     xaxis: {
-      position: 'top'
+      position: 'top',
+      labels: {
+        rotate: -90
+      },
     },
     yaxis: {
       reversed: true
@@ -185,10 +190,26 @@ function renderChart() {
   chart = new ApexCharts(document.querySelector("#chart"), options);
   chart.render();
 
-  tippy('.apexcharts-xaxis-label', {
+  // tippy('.apexcharts-xaxis-label', {
+  //   content: (elem) => {
+  //     let protId = elem.getElementsByTagName('title')?.[0].innerHTML;
+  //     let data = savedProteinData[protId];
+  //     let tip = "<ui>";
+  //     for(let [key, val] of Object.entries(data)) {
+  //       tip += `<li>${key}: ${val}</\li>`;
+  //     }
+  //     tip += "</ui>";
+  //     return tip;
+  //   },
+  //   allowHTML: true
+  // });
+
+  tippy('.apexcharts-yaxis-label', {
     content: (elem) => {
-      let protId = elem.getElementsByTagName('title')?.[0].innerHTML;
-      let data = savedProteinData[protId];
+      let organismName = elem.getElementsByTagName('title')?.[0].innerHTML;
+      let data = mapNameToTaxa[organismName];
+      if(!data)
+        return '';
       let tip = "<ui>";
       for(let [key, val] of Object.entries(data)) {
         tip += `<li>${key}: ${val}</\li>`;
