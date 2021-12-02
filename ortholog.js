@@ -69,7 +69,7 @@ for(let [mnemonic, proteins] of Object.entries(mapMnemonicToProteins)) {
   } else {
     for(let protein of proteins) {
       protein.displayedName = `${mnemonic} (${protein.up_id})`;
-      mapDisplayedNameToProtein[displayedName] = protein.displayedName;
+      mapDisplayedNameToProtein[protein.displayedName] = protein;
     }
   }
 }
