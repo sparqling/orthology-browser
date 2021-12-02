@@ -29,7 +29,9 @@ let tooltips = {};
 let series = null;
 
 let maxParalogNum = 0;
-let mapNameToTaxa = {}, mapTaxIdToTaxa = {}, mapDisplayedNameToProtein = {};
+let mapNameToTaxa = {}, mapTaxIdToTaxa = {},
+  mapMnemonicToProteins = {};
+  mapDisplayedNameToProtein = {};
 
 mapNameToTaxa[baseTaxon.displayedName] = baseTaxon;
 mapTaxIdToTaxa[baseTaxon.genome_taxid] = baseTaxon;
@@ -53,7 +55,22 @@ for (let i = 0; i < localStorage.length; i++) {
   } else if(key.startsWith(proteinPrefix)) {
     let entry = localStorage.getObject(key);
     proteins.push(entry);
-    mapDisplayedNameToProtein[entry.up_id] = entry;
+    if(!mapMnemonicToProteins[entry.mnemonic])
+      mapMnemonicToProteins[entry.mnemonic] = [];
+    mapMnemonicToProteins[entry.mnemonic].push(entry);
+  }
+}
+
+// Assign unique displayed name to avoid conflict
+for(let [mnemonic, proteins] of Object.entries(mapMnemonicToProteins)) {
+  if(proteins.length === 1) {
+    proteins[0].displayedName = mnemonic;
+    mapDisplayedNameToProtein[mnemonic] = proteins[0];
+  } else {
+    for(let protein of proteins) {
+      entry.displayedName = `${entry.mnemonic} (${entry.up_id})`;
+      mapDisplayedNameToProtein[displayedName] = entry.displayedName;
+    }
   }
 }
 
@@ -119,7 +136,7 @@ queryBySpang("sparql/matrix.rq", { taxa: comparedTaxa.map((taxon) => 'upTax:' + 
           tooltips[i] = {};
         tooltips[i][j] = protMap[up_id] ?? '';
         return {
-          x: `${protein.mnemonic} (${protein.up_id})`,
+          x: protein.displayedName,
           y: paralogNum 
         };
      })
@@ -190,19 +207,19 @@ function renderChart() {
   chart = new ApexCharts(document.querySelector("#chart"), options);
   chart.render();
 
-  // tippy('.apexcharts-xaxis-label', {
-  //   content: (elem) => {
-  //     let protId = elem.getElementsByTagName('title')?.[0].innerHTML;
-  //     let data = savedProteinData[protId];
-  //     let tip = "<ui>";
-  //     for(let [key, val] of Object.entries(data)) {
-  //       tip += `<li>${key}: ${val}</\li>`;
-  //     }
-  //     tip += "</ui>";
-  //     return tip;
-  //   },
-  //   allowHTML: true
-  // });
+  tippy('.apexcharts-xaxis-label', {
+    content: (elem) => {
+      let displayedName = elem.getElementsByTagName('title')?.[0].innerHTML;
+      let data = mapDisplayedNameToProtein[displayedName];
+      let tip = "<ui>";
+      for(let [key, val] of Object.entries(data)) {
+        tip += `<li>${key}: ${val}</\li>`;
+      }
+      tip += "</ui>";
+      return tip;
+    },
+    allowHTML: true
+  });
 
   tippy('.apexcharts-yaxis-label', {
     content: (elem) => {
