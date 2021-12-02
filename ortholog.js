@@ -41,121 +41,150 @@ Storage.prototype.getObject = function (key) {
   return val && JSON.parse(val) || {};
 }
 
-for (let i = 0; i < localStorage.length; i++) {
-  let key = localStorage.key(i);
-  if (key.startsWith(taxonPrefix)) {
-    let taxonId = localStorage.getObject(key)?.genome_taxid;
-    if (taxonId && taxonId !== baseTaxon.genome_taxid) {
-      let entry = localStorage.getObject(key);
-      entry.displayedName = entry.organism_name.replaceAll(/^.*\((.*)\)/g, '$1');
-      comparedTaxa.push(entry);
-      mapNameToTaxa[entry.displayedName] = entry;
-      mapTaxIdToTaxa[taxonId] = entry;
-    }
-  } else if (key.startsWith(proteinPrefix)) {
-    let entry = localStorage.getObject(key);
-    proteins.push(entry);
-    if (!mapMnemonicToProteins[entry.mnemonic])
-      mapMnemonicToProteins[entry.mnemonic] = [];
-    mapMnemonicToProteins[entry.mnemonic].push(entry);
-  }
-}
-
-proteins.sort((protein1, protein2) => protein1.mnemonic < protein2.mnemonic ? -1 : 1);
-
-// Assign unique displayed name to avoid conflict
-for (let [mnemonic, proteins] of Object.entries(mapMnemonicToProteins)) {
-  if (proteins.length === 1) {
-    proteins[0].displayedName = mnemonic;
-    mapDisplayedNameToProtein[mnemonic] = proteins[0];
-  } else {
-    for (let protein of proteins) {
-      protein.displayedName = `${mnemonic} (${protein.up_id})`;
-      mapDisplayedNameToProtein[protein.displayedName] = protein;
-    }
-  }
-}
-
-function queryBySpang(queryUrl, param, callback, target_end = null) {
-  $.get(queryUrl, (query) => {
-    spang.query(query, target_end ? target_end : endpoint, {param: param, format: 'json'}, (error, status, result) => {
-      let resultJson;
-      try {
-        resultJson = JSON.parse(result);
-      } catch (e) {
-        console.log(e);
-        resultJson = {
-          results:
-            {
-              bindings: {}
-            }
-        };
-      }
-      callback(resultJson);
-    });
-  });
-}
-
-function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
-
-
-$('#database-select').on('change', () => {
-  renderChart();
-});
-
-queryBySpang("sparql/matrix.rq", {
-  taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon.genome_taxid).join(' '),
-  proteins: proteins.map((protein) => 'uniprot:' + protein.up_id).join(' ')
-}, (result) => {
-  maxParalogNum = 0;
-  let taxIdList = [baseTaxon.genome_taxid].concat(comparedTaxa.map((taxon) => taxon.genome_taxid));
-  let taxonProtMap = {};
-  for (let taxon of taxIdList)
-    taxonProtMap[taxon] = {};
-  for (let prot of proteins.map((prot) => prot.up_id))
-    taxonProtMap[baseTaxon.genome_taxid][prot] = [prot];
-  for (let binding of result.results.bindings) {
-    let taxon = binding.taxid.value.replace(/.*\//, '');
-    let baseProt = binding.uniprot_human.value.replace(/.*\//, '');
-    ;
-    let taxProt = binding.uniprot.value.replace(/.*\//, '');
-    if (!taxonProtMap[taxon][baseProt])
-      taxonProtMap[taxon][baseProt] = [taxProt];
-    else
-      taxonProtMap[taxon][baseProt].push(taxProt);
-    maxParalogNum = Math.max(maxParalogNum, taxonProtMap[taxon][baseProt].length);
-  }
-
-  tooltips = {};
-  series = taxIdList.map((taxId, i) => {
-    let protMap = taxonProtMap[taxId];
-    let data = proteins.map((protein, j) => {
-      let up_id = protein.up_id;
-      let paralogNum = protMap[up_id]?.length || 0;
-      if (!tooltips[i])
-        tooltips[i] = {};
-      tooltips[i][j] = protMap[up_id] ?? '';
-      return {
-        x: protein.displayedName,
-        y: paralogNum
-      };
-    });
-    let cellNum = data.reduce((accum, elem) => accum + (elem.y > 0 ? 1 : 0), 0);
-    return {
-      name: mapTaxIdToTaxa[taxId].displayedName,
-      data,
-      cellNum
-    };
-  });
-  series.sort((row1, row2) => row2.cellNum - row1.cellNum);
-  renderChart();
-}, "https://orth.dbcls.jp/sparql-proxy-oma");
-
-function renderChart() {
+function UpdateChart() {
   if (chart)
     chart.destroy();
+
+  comparedTaxa = [];
+  proteins = [];
+  tooltips = {};
+  series = null;
+
+  maxParalogNum = 0;
+  mapNameToTaxa = {};
+  mapTaxIdToTaxa = {};
+  mapMnemonicToProteins = {};
+  mapDisplayedNameToProtein = {};
+
+  mapNameToTaxa[baseTaxon.displayedName] = baseTaxon;
+  mapTaxIdToTaxa[baseTaxon.genome_taxid] = baseTaxon;
+  
+  $('#loader-container').show();
+  $('#chart').hide();
+  for (let i = 0; i < localStorage.length; i++) {
+    let key = localStorage.key(i);
+    if (key.startsWith(taxonPrefix)) {
+      let taxonId = localStorage.getObject(key)?.genome_taxid;
+      if (taxonId && taxonId !== baseTaxon.genome_taxid) {
+        let entry = localStorage.getObject(key);
+        entry.displayedName = entry.organism_name.replaceAll(/^.*\((.*)\)/g, '$1');
+        comparedTaxa.push(entry);
+        mapNameToTaxa[entry.displayedName] = entry;
+        mapTaxIdToTaxa[taxonId] = entry;
+      }
+    } else if (key.startsWith(proteinPrefix)) {
+      let entry = localStorage.getObject(key);
+      proteins.push(entry);
+      if (!mapMnemonicToProteins[entry.mnemonic])
+        mapMnemonicToProteins[entry.mnemonic] = [];
+      mapMnemonicToProteins[entry.mnemonic].push(entry);
+    }
+  }
+
+  proteins.sort((protein1, protein2) => protein1.mnemonic < protein2.mnemonic ? -1 : 1);
+  
+  if(proteins.length === 0 || comparedTaxa.length === 0) {
+    $('#loader-container').hide();
+    $('#chart').show();
+    $('#chart')[0].innerText = "No candidates selected";
+    return;
+  }
+
+  // Assign unique displayed name to avoid conflict
+  for (let [mnemonic, proteins] of Object.entries(mapMnemonicToProteins)) {
+    if (proteins.length === 1) {
+      proteins[0].displayedName = mnemonic;
+      mapDisplayedNameToProtein[mnemonic] = proteins[0];
+    } else {
+      for (let protein of proteins) {
+        protein.displayedName = `${mnemonic} (${protein.up_id})`;
+        mapDisplayedNameToProtein[protein.displayedName] = protein;
+      }
+    }
+  }
+
+  function queryBySpang(queryUrl, param, callback, target_end = null) {
+    $.get(queryUrl, (query) => {
+      console.log(query);
+      spang.query(query, target_end ? target_end : endpoint, {
+        param: param,
+        format: 'json'
+      }, (error, status, result) => {
+        let resultJson;
+        try {
+          resultJson = JSON.parse(result);
+        } catch (e) {
+          console.log(e);
+          resultJson = {
+            results:
+              {
+                bindings: {}
+              }
+          };
+        }
+        callback(resultJson);
+      });
+    });
+  }
+
+  function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  }
+  
+  $('#database-select').on('change', () => {
+    renderChart();
+  });
+
+  queryBySpang("sparql/matrix.rq", {
+    taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon.genome_taxid).join(' '),
+    proteins: proteins.map((protein) => 'uniprot:' + protein.up_id).join(' ')
+  }, (result) => {
+    maxParalogNum = 0;
+    let taxIdList = [baseTaxon.genome_taxid].concat(comparedTaxa.map((taxon) => taxon.genome_taxid));
+    let taxonProtMap = {};
+    for (let taxon of taxIdList)
+      taxonProtMap[taxon] = {};
+    for (let prot of proteins.map((prot) => prot.up_id))
+      taxonProtMap[baseTaxon.genome_taxid][prot] = [prot];
+    for (let binding of result.results.bindings) {
+      let taxon = binding.taxid.value.replace(/.*\//, '');
+      let baseProt = binding.uniprot_human.value.replace(/.*\//, '');
+      ;
+      let taxProt = binding.uniprot.value.replace(/.*\//, '');
+      if (!taxonProtMap[taxon][baseProt])
+        taxonProtMap[taxon][baseProt] = [taxProt];
+      else
+        taxonProtMap[taxon][baseProt].push(taxProt);
+      maxParalogNum = Math.max(maxParalogNum, taxonProtMap[taxon][baseProt].length);
+    }
+
+    tooltips = {};
+    series = taxIdList.map((taxId, i) => {
+      let protMap = taxonProtMap[taxId];
+      let data = proteins.map((protein, j) => {
+        let up_id = protein.up_id;
+        let paralogNum = protMap[up_id]?.length || 0;
+        if (!tooltips[i])
+          tooltips[i] = {};
+        tooltips[i][j] = protMap[up_id] ?? '';
+        return {
+          x: protein.displayedName,
+          y: paralogNum
+        };
+      });
+      let cellNum = data.reduce((accum, elem) => accum + (elem.y > 0 ? 1 : 0), 0);
+      return {
+        name: mapTaxIdToTaxa[taxId].displayedName,
+        data,
+        cellNum
+      };
+    });
+    series.sort((row1, row2) => row2.cellNum - row1.cellNum);
+    renderChart();
+  }, "https://orth.dbcls.jp/sparql-proxy-oma");
+}
+
+function renderChart() {
   let options = {
     series,
     chart: {
@@ -213,7 +242,8 @@ function renderChart() {
     }
   };
   chart = new ApexCharts(document.querySelector("#chart"), options);
-  $('#loading-image').hide();
+  $('#loader-container').hide();
+  $('#chart').show();
   chart.render();
 
   tippy('.apexcharts-xaxis-label', {
@@ -246,3 +276,5 @@ function renderChart() {
     allowHTML: true
   });
 }
+
+$(UpdateChart);

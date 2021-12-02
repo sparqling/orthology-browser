@@ -14,27 +14,34 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <script src='https://cdn.jsdelivr.net/gh/sparqling/spang@41f3ce3/js/spang.min.js'></script>
   <script src="ortholog.js"></script>
+  <script src="taxonomy.js"></script>
+  <script src="go.js"></script>
 </head>
 
 <body>
 
-<div class="ui-widget">
-
-  <!-- List of genomes -->
-  <div id="counter_div"></div>
-  <table border="0" id="details" class="tablesorter"></table>
-
-</div>
-
-<br><br><br>
 <select style="margin-left: 10px;" id="database-select">
   <option>OMA</option>
   <option>Ortho DB</option>
   <option>Meta Prediction</option>
 </select>
-<div id="chart" style="width: 100%; height: 100%; text-align: center;">
+<div id="loader-container" style="width: 100%; height: 200px; text-align: center;">
   <img id="loading-image" src="./loader.gif" alt="Loading..." />
 </div>
-</body>
+<div id="chart" style="width: 100%; height: 200px; text-align: center;">
+</div>
 
+<div class="ui-widget">
+  <!-- List of genomes -->
+  <div id="proteome-counter"></div>
+  <table border="0" id="selected-proteomes" class="tablesorter"></table>
+</div>
+
+<div class="ui-widget">
+  <!-- List of genomes -->
+  <div id="protein-counter"></div>
+  <table border="0" id="selected-proteins" class="tablesorter"></table>
+</div>
+
+</body>
 </html>
