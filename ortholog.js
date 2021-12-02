@@ -12,6 +12,7 @@ let proteins = [];
 let tooltips = {};
 let series = null;
 
+let maxParalogNum = 0;
 
 Storage.prototype.getObject = function(key) {
   let val = this.getItem(key);
@@ -64,6 +65,7 @@ $('#database-select').on('change', () => {
 queryBySpang("sparql/matrix.rq", { taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon).join(' '),
                                                   proteins: proteins.map((protein) => 'uniprot:' + protein).join(' ')
                                                 }, (result) => {
+  maxParalogNum = 0;
   let taxa = [baseTaxon].concat(comparedTaxa);
   let taxonProtMap = {};
   for(let taxon of taxa)
@@ -78,21 +80,23 @@ queryBySpang("sparql/matrix.rq", { taxa: comparedTaxa.map((taxon) => 'upTax:' + 
       taxonProtMap[taxon][baseProt] = [taxProt];
     else
       taxonProtMap[taxon][baseProt].push(taxProt);
+    maxParalogNum = Math.max(maxParalogNum, taxonProtMap[taxon][baseProt].length);
   }
   
   tooltips = {};
   series = taxa.map((taxon, i) => {
     let protMap = taxonProtMap[taxon];
     return {
-      name: taxon,
-      data: proteins.map((protein, j) => {
-        if(!tooltips[i])
-          tooltips[i] = {};
-        tooltips[i][j] = protMap[protein] ?? '';
-        return {
-        x: protein,
-        y: protMap[protein]?.length || 0
-      };
+        name: taxon,
+        data: proteins.map((protein, j) => {
+          let paralogNum = protMap[protein]?.length || 0;
+          if(!tooltips[i])
+            tooltips[i] = {};
+          tooltips[i][j] = protMap[protein] ?? '';
+          return {
+          x: protein,
+          y: paralogNum 
+        };
       })
     }
   });
@@ -118,11 +122,43 @@ function renderChart() {
     dataLabels: {
       enabled: false
     },
-    colors: ["#008FFB"],
+    plotOptions: {
+      heatmap: {
+        colorScale: {
+          ranges: [
+            {
+              from: 0,
+              to: 0,
+              name: ' ',
+              color: '#FFFFFF'
+            },
+            {
+              from: 1,
+              to: maxParalogNum,
+              name: ' ',
+              color: '#008FFB'
+            },
+            // {
+            //   from: max / 3,
+            //   to: max * 2 / 3,
+            //   name: ' ',
+            //   color: '#FF8F00'
+            // },
+            // {
+            //   from: max * 2 / 3,
+            //   to: max,
+            //   name: ' ',
+            //   color: '#FF2200'
+            // },
+          ]
+        },
+      }
+    },
     title: {
       text: `Orthology Map from ${$('#database-select').val()}`
     },
     legend: {
+      show: false,
       inverseOrder: true
     },
     xaxis: {
@@ -133,9 +169,12 @@ function renderChart() {
     },
     tooltip: {
       custom: function({series, seriesIndex, dataPointIndex, w}) {
+        let tips = tooltips[seriesIndex][dataPointIndex]; 
+        if(!tips)
+          return '';
         return '<div class="arrow_box">' +
-          '<span>' + tooltips[seriesIndex][dataPointIndex].join(', ') + '</span>' +
-          '</div>'
+          '<span>' + tips.join(', ') + '</span>' +
+          '</div>';
       }
     }
   };
