@@ -68,8 +68,8 @@ for(let [mnemonic, proteins] of Object.entries(mapMnemonicToProteins)) {
     mapDisplayedNameToProtein[mnemonic] = proteins[0];
   } else {
     for(let protein of proteins) {
-      entry.displayedName = `${entry.mnemonic} (${entry.up_id})`;
-      mapDisplayedNameToProtein[displayedName] = entry.displayedName;
+      protein.displayedName = `${mnemonic} (${protein.up_id})`;
+      mapDisplayedNameToProtein[displayedName] = protein.displayedName;
     }
   }
 }
