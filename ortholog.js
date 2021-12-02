@@ -20,12 +20,11 @@ Storage.prototype.getObject = function(key) {
   return val && JSON.parse(val) || {};
 }
 
-
 for (let i = 0; i < localStorage.length; i++) {
   let key = localStorage.key(i);
   if (key.startsWith(taxonPrefix)) {
     let taxonId = localStorage.getObject(key)?.genome_taxid;
-    if(taxonId) {
+    if(taxonId && taxonId != baseTaxon) {
       comparedTaxa.push(taxonId);
       savedTaxonData[taxonId] = localStorage.getObject(key);
     }
