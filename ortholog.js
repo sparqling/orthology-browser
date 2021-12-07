@@ -133,7 +133,6 @@ function UpdateChart() {
 
   function queryBySpang(queryUrl, param, callback, target_end = null) {
     $.get(queryUrl, (query) => {
-      console.log(query);
       spang.query(query, target_end ? target_end : endpoint, {
         param: param,
         format: 'json'
@@ -220,7 +219,8 @@ function UpdateChart() {
         tooltips[i][j] = datum.tooltip
       })
     });
-    
+
+
     renderChart();
   }, "https://orth.dbcls.jp/sparql-proxy-oma");
 }
@@ -316,7 +316,61 @@ function renderChart() {
     },
     allowHTML: true
   });
+
+  
+  
+  let columnVectors = [];
+  for(let i = 0; i < series[0].data.length; i++)
+    columnVectors.push({data: series.map(elem => elem.data[i].y), name: series[0].data[i].x});
+  let dataForD3 = {};
+
+  let rowJson = {};
+  let currentNode = rowJson;
+  series.forEach((elem, i) => {
+    let childNode = {};
+    currentNode.name = 'intermediate_node';
+    if(i < series.length - 1) {
+      currentNode.children = [{name: elem.name}, childNode];
+      currentNode = childNode;
+    } else {
+      currentNode.name = elem.name;
+    }
+  });
+  
+  dataForD3.rowJSON = rowJson;
+  let cluster = hcluster().distance('euclidean').linkage('avg').posKey('data').data(columnVectors);
+  dataForD3.colJSON = cluster.tree();
+  matrix = [];
+  for(let _ of series)
+    matrix.push([]);
+  cluster.orderedNodes().forEach((node) => {
+    node.data.forEach((datum, i) => {
+      matrix[i].push(datum);
+    });
+  });
+  dataForD3.matrix = matrix;
+  
+  d3.heatmapDendro(dataForD3, "#heatmap", 5000);
 }
+
+function createMatrixFromTree( matrix) {
+  
+}
+
+let i = 0;
+function fckTreeToD3(fckTree) {
+  if(fckTree.size === 1) {
+    return {
+      "name": [fckTree.value.name],
+      "chidren": []
+    };
+  } 
+  return {
+    "name": [++i],
+    children: [fckTreeToD3(fckTree.right), fckTreeToD3(fckTree.left)]
+  }
+}
+
 
 $(UpdateChart);
 
