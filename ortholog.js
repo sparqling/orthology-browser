@@ -41,6 +41,34 @@ Storage.prototype.getObject = function (key) {
   return val && JSON.parse(val) || {};
 }
 
+function mdsClassic(distances, dimensions) {
+  dimensions = dimensions || 2;
+
+  // square distances
+  let M = numeric.mul(-.5, numeric.pow(distances, 2));
+
+  // double centre the rows/columns
+  function mean(A) { return numeric.div(numeric.add.apply(null, A), A.length); }
+  let rowMeans = mean(M),
+    colMeans = mean(numeric.transpose(M)),
+    totalMean = mean(rowMeans);
+
+  for (let i = 0; i < M.length; ++i) {
+    for (let j =0; j < M[0].length; ++j) {
+      M[i][j] += totalMean - rowMeans[j] - colMeans[i];
+    }
+  }
+
+  // take the SVD of the double centred matrix, and return the
+  // points from it
+  let ret = numeric.svd(M),
+    eigenValues = numeric.sqrt(ret.S);
+  return ret.U.map(function(row) {
+    return numeric.mul(row, eigenValues).splice(0, dimensions);
+  });
+};
+
+
 function UpdateChart() {
   if (chart)
     chart.destroy();
@@ -164,22 +192,35 @@ function UpdateChart() {
       let data = proteins.map((protein, j) => {
         let up_id = protein.up_id;
         let paralogNum = protMap[up_id]?.length || 0;
-        if (!tooltips[i])
-          tooltips[i] = {};
-        tooltips[i][j] = protMap[up_id] ?? '';
         return {
           x: protein.displayedName,
-          y: paralogNum
+          y: paralogNum,
+          tooltip: protMap[up_id] ?? ''
         };
       });
       let cellNum = data.reduce((accum, elem) => accum + (elem.y > 0 ? 1 : 0), 0);
       return {
         name: mapTaxIdToTaxa[taxId].displayedName,
         data,
-        cellNum
+        cellNum,
       };
     });
     series.sort((row1, row2) => row2.cellNum - row1.cellNum);
+    series.sort((row1, row2) => row2.cellNum - row1.cellNum);
+    let columnVectors = [];
+    for(let i = 0; i < series[0].data.length; i++)
+      columnVectors.push(series.map(elem => elem.data[i].y));
+    let mdsResult = mdsClassic(columnVectors, 1);
+    series.forEach((elem, i) => {
+      elem.data.forEach((datum, j) => datum.position = mdsResult[j]);
+      elem.data.sort((cell1, cell2) => cell2.position - cell1.position);
+      elem.data.forEach((datum, j) => {
+        if (!tooltips[i])
+          tooltips[i] = {};
+        tooltips[i][j] = datum.tooltip
+      })
+    });
+    
     renderChart();
   }, "https://orth.dbcls.jp/sparql-proxy-oma");
 }
@@ -278,3 +319,4 @@ function renderChart() {
 }
 
 $(UpdateChart);
+
