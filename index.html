@@ -1,47 +1,48 @@
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Orthology Browser</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
-  <link rel="stylesheet" href="css/style.css" type="text/css" media="print, projection, screen" />
+    <head>
+        <meta charset="utf-8">
+        <title>Orthology Browser</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+        <link rel="stylesheet" href="css/style.css" type="text/css" media="print, projection, screen" />
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-  <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
-  <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+        <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+        <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <script src='https://cdn.jsdelivr.net/gh/sparqling/spang@41f3ce3/js/spang.min.js'></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-  <script src="ortholog.js"></script>
-  <script src="taxonomy.js"></script>
-  <script src="go.js"></script>
-</head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+        <script src='https://cdn.jsdelivr.net/gh/sparqling/spang@41f3ce3/js/spang.min.js'></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+        <script src="ortholog.js"></script>
+        <script src="taxonomy.js"></script>
+        <script src="go.js"></script>
+        <link rel="icon" href="img/favicon.ico"/>
+    </head>
 
-<body>
+    <body>
 
-<select style="margin-left: 10px;" id="database-select">
-  <option>OMA</option>
-  <option>Ortho DB</option>
-  <option>Meta Prediction</option>
-</select>
-<div id="loader-container" style="width: 100%; height: 200px; text-align: center;">
-  <img id="loading-image" src="./loader.gif" alt="Loading..." />
-</div>
-<div id="chart" style="width: 100%; height: 200px; text-align: center;">
-</div>
+        <select style="margin-left: 10px;" id="database-select">
+            <option>OMA</option>
+            <option>Ortho DB</option>
+            <option>Meta Prediction</option>
+        </select>
+        <div id="loader-container" style="width: 100%; height: 200px; text-align: center;">
+            <img id="loading-image" src="./loader.gif" alt="Loading..." />
+        </div>
+        <div id="chart" style="width: 100%; height: 200px; text-align: center;">
+        </div>
 
-<div class="ui-widget">
-  <!-- List of genomes -->
-  <div id="proteome-counter"></div>
-  <table border="0" id="selected-proteomes" class="tablesorter"></table>
-</div>
+        <div class="ui-widget">
+            <!-- List of genomes -->
+            <div id="proteome-counter"></div>
+            <table border="0" id="selected-proteomes" class="tablesorter"></table>
+        </div>
 
-<div class="ui-widget">
-  <!-- List of genomes -->
-  <div id="protein-counter"></div>
-  <table border="0" id="selected-proteins" class="tablesorter"></table>
+        <div class="ui-widget">
+            <!-- List of genomes -->
+            <div id="protein-counter"></div>
+            <table border="0" id="selected-proteins" class="tablesorter"></table>
 </div>
 
 </body>
