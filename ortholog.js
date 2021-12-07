@@ -95,7 +95,7 @@ function UpdateChart() {
       let taxonId = localStorage.getObject(key)?.genome_taxid;
       if (taxonId && taxonId !== baseTaxon.genome_taxid) {
         let entry = localStorage.getObject(key);
-        entry.displayedName = entry.organism_name.replaceAll(/^.*\((.*)\)/g, '$1');
+        entry.displayedName = entry.organism_name.replaceAll(/^[^\(].*\((.*)\)/g, '$1');
         comparedTaxa.push(entry);
         mapNameToTaxa[entry.displayedName] = entry;
         mapTaxIdToTaxa[taxonId] = entry;
