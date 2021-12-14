@@ -26,8 +26,10 @@ let baseTaxon = {
 let comparedTaxa = [];
 let proteins = [];
 let tooltips = {};
+let tooltipMap = {};
 let series = null;
 let taxonTree = null;
+let paraNumMap = null;
 
 let maxParalogNum = 0;
 let mapNameToTaxa = {}, mapTaxIdToTaxa = {},
@@ -197,6 +199,7 @@ function UpdateChart() {
         let up_id = protein.up_id;
         let paralogNum = protMap[up_id]?.length || 0;
         return {
+          id: up_id,
           x: protein.displayedName,
           y: paralogNum,
           tooltip: protMap[up_id] ?? ''
@@ -204,11 +207,24 @@ function UpdateChart() {
       });
       let cellNum = data.reduce((accum, elem) => accum + (elem.y > 0 ? 1 : 0), 0);
       return {
+        id: taxId,
         name: mapTaxIdToTaxa[taxId].displayedName,
         data,
         cellNum,
       };
     });
+
+    paraNumMap = {};
+    tooltipMap = {};
+    for(let tax of series) {
+      paraNumMap[tax.id] = {};
+      tooltipMap[tax.id] = {};
+      for(let prot of tax.data) {
+        paraNumMap[tax.id][prot.id] = prot.y;
+        tooltipMap[tax.id][prot.id] = prot.tooltip;
+      }
+    }
+    
     series.sort((row1, row2) => row2.cellNum - row1.cellNum);
     series.sort((row1, row2) => row2.cellNum - row1.cellNum);
     let columnVectors = [];
@@ -281,6 +297,18 @@ function simplifyTree(node) {
   }
 }
 
+function orderedNodes(tree) {
+  if(tree.children.length === 0)
+    return [tree];
+  else {
+    let nodes = [];
+    for(let child of tree.children) {
+      nodes = nodes.concat(orderedNodes(child));
+    }
+    return nodes;
+  }
+}
+
 function renderChart() {
   let options = {
     series,
@@ -327,16 +355,16 @@ function renderChart() {
     yaxis: {
       reversed: true
     },
-    tooltip: {
-      custom: function ({series, seriesIndex, dataPointIndex, w}) {
-        let tips = tooltips[seriesIndex][dataPointIndex];
-        if (!tips)
-          return '';
-        return '<div class="arrow_box">' +
-          '<span>' + tips.join('<br>') + '</span>' +
-          '</div>';
-      },
-    }
+    // tooltip: {
+    //   custom: function ({series, seriesIndex, dataPointIndex, w}) {
+    //     let tips = tooltips[seriesIndex][dataPointIndex];
+    //     if (!tips)
+    //       return '';
+    //     return '<div class="arrow_box">' +
+    //       '<span>' + tips.join('<br>') + '</span>' +
+    //       '</div>';
+    //   },
+    // }
   };
   chart = new ApexCharts(document.querySelector("#chart"), options);
   $('#loader-container').hide();
@@ -372,14 +400,15 @@ function renderChart() {
     },
     allowHTML: true
   });
-
+  
   
   
   let columnVectors = [];
   for(let i = 0; i < series[0].data.length; i++)
-    columnVectors.push({val: series.map(elem => elem.data[i].y),
-      tooltips: series.map(elem => elem.data[i].tooltip),
-      name: series[0].data[i].x
+    columnVectors.push({
+      val: series.map(elem => elem.data[i].y),
+      name: series[0].data[i].x,
+      id: series[0].data[i].id
     });
   let dataForD3 = {};
 
@@ -387,15 +416,18 @@ function renderChart() {
   let cluster = hcluster().distance('euclidean').linkage('avg').posKey('val').data(columnVectors);
   dataForD3.colJSON = cluster.tree();
   matrix = [];
-  for(let _ of series)
-    matrix.push([]);
-  cluster.orderedNodes().forEach((node, j) => {
-    node.val.forEach((datum, i) => {
-      matrix[i].push(datum);
-      if (!tooltips[i])
-        tooltips[i] = {};
-      tooltips[i][j] = node.tooltips[i];
+  let orderedTaxons = orderedNodes(taxonTree);
+  let orderedProteins = cluster.orderedNodes();
+
+  tooltips = {};
+  orderedTaxons.forEach((tax, j) => {
+    let row = [];
+    tooltips[j] = {};
+    orderedProteins.forEach((prot, i) => {
+      row.push( paraNumMap[tax.id][prot.id] );
+      tooltips[j][i] = tooltipMap[tax.id][prot.id];
     });
+    matrix.push(row);
   });
   dataForD3.matrix = matrix;
   
