@@ -3,6 +3,20 @@
  */
 
 (function () {
+  
+  function showToolTip(target, tip) {
+    d3.select(target).classed("cell-hover", true);
+    //Update the tooltip position and value
+    d3.select("#d3tooltip")
+      .style("left", (d3.event.pageX + 10) + "px")
+      .style("top", (d3.event.pageY - 10) + "px")
+      .select("#value")
+      .html(tip);
+    //Show the tooltip
+    d3.select("#d3tooltip").transition()
+      .duration(200)
+      .style("opacity", .9);
+  }
 
   d3.heatmapDendro = function (data, parent) {
 
@@ -71,6 +85,17 @@
       })
       .style("text-anchor", "start")
       .attr("transform", "translate(" + (width + cellSize) + "," + cellSize / 1.5 + ")")
+      .on("mouseover", function (d) {
+        let data = mapNameToTaxa[d];
+        if (!data)
+          return '';
+        let tip = "<ui>";
+        for (let [key, val] of Object.entries(data)) {
+          tip += `<li>${key}: ${val}</\li>`;
+        }
+        tip += "</ui>";
+        showToolTip(this, tip);
+      })
       .attr("class", function (d, i) {
         return "rowLabel mono r" + i;
       });
@@ -89,6 +114,15 @@
       })
       .style("text-anchor", "end")
       .attr("transform", "translate(" + cellSize / 2 + ",-6) rotate (-90)  translate( -" + (height + cellSize * 2) + "," + clusterSpace + ")")
+      .on("mouseover", function (d) {
+        let data = mapDisplayedNameToProtein[d];
+        let tip = "<ui>";
+        for (let [key, val] of Object.entries(data)) {
+          tip += `<li>${key}: ${val}</\li>`;
+        }
+        tip += "</ui>";
+        showToolTip(this, tip);
+      })
       .attr("class", function (d, i) {
         return "colLabel mono c" + i;
       });
@@ -124,17 +158,7 @@
         let tips = tooltips[d.row - 1][d.col - 1];
         if (!tips)
           return '';
-        d3.select(this).classed("cell-hover", true);
-        //Update the tooltip position and value
-        d3.select("#d3tooltip")
-          .style("left", (d3.event.pageX + 10) + "px")
-          .style("top", (d3.event.pageY - 10) + "px")
-          .select("#value")
-          .html(tips);
-        //Show the tooltip
-        d3.select("#d3tooltip").transition()
-          .duration(200)
-          .style("opacity", .9);
+        showToolTip(this, tips);
       })
       .on("mouseout", function () {
         d3.select(this).classed("cell-hover", false);
