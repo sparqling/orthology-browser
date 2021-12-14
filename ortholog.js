@@ -185,7 +185,6 @@ function UpdateChart() {
       maxParalogNum = Math.max(maxParalogNum, taxonProtMap[taxon][baseProt].length);
     }
 
-    tooltips = {};
     series = taxIdList.map((taxId, i) => {
       let protMap = taxonProtMap[taxId];
       let data = proteins.map((protein, j) => {
@@ -214,9 +213,6 @@ function UpdateChart() {
       elem.data.forEach((datum, j) => datum.position = mdsResult[j]);
       elem.data.sort((cell1, cell2) => cell2.position - cell1.position);
       elem.data.forEach((datum, j) => {
-        if (!tooltips[i])
-          tooltips[i] = {};
-        tooltips[i][j] = datum.tooltip
       })
     });
 
@@ -321,7 +317,10 @@ function renderChart() {
   
   let columnVectors = [];
   for(let i = 0; i < series[0].data.length; i++)
-    columnVectors.push({data: series.map(elem => elem.data[i].y), name: series[0].data[i].x});
+    columnVectors.push({val: series.map(elem => elem.data[i].y),
+      tooltips: series.map(elem => elem.data[i].tooltip),
+      name: series[0].data[i].x
+    });
   let dataForD3 = {};
 
   let rowJson = {};
@@ -338,14 +337,17 @@ function renderChart() {
   });
   
   dataForD3.rowJSON = rowJson;
-  let cluster = hcluster().distance('euclidean').linkage('avg').posKey('data').data(columnVectors);
+  let cluster = hcluster().distance('euclidean').linkage('avg').posKey('val').data(columnVectors);
   dataForD3.colJSON = cluster.tree();
   matrix = [];
   for(let _ of series)
     matrix.push([]);
-  cluster.orderedNodes().forEach((node) => {
-    node.data.forEach((datum, i) => {
+  cluster.orderedNodes().forEach((node, j) => {
+    node.val.forEach((datum, i) => {
       matrix[i].push(datum);
+      if (!tooltips[i])
+        tooltips[i] = {};
+      tooltips[i][j] = node.tooltips[i];
     });
   });
   dataForD3.matrix = matrix;

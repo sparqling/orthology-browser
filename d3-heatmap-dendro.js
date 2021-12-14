@@ -109,6 +109,8 @@
       .attr("class", function (d) {
         return "cell cell-border cr" + (d.row - 1) + " cc" + (d.col - 1);
       })
+      .attr("data-row", (d) => d.row - 1)
+      .attr("data-col", (d) => d.col - 1)
       .attr("width", cellSize)
       .attr("height", cellSize)
       .style("fill", function (d) {
@@ -119,16 +121,16 @@
         return d.value ? `rgb(${red}, ${green}, ${blue})` : "white";
       })
       .on("mouseover", function (d) {
+        let tips = tooltips[d.row - 1][d.col - 1];
+        if (!tips)
+          return '';
         d3.select(this).classed("cell-hover", true);
         //Update the tooltip position and value
         d3.select("#d3tooltip")
           .style("left", (d3.event.pageX + 10) + "px")
           .style("top", (d3.event.pageY - 10) + "px")
           .select("#value")
-          .html(
-            "Cell type: " + colLabel[d.col] + "<br>Sample name: " + rowLabel[d.row]
-            + "<br>Value: " + d.value
-          );
+          .html(tips);
         //Show the tooltip
         d3.select("#d3tooltip").transition()
           .duration(200)
