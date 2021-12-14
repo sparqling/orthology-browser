@@ -38,31 +38,19 @@
         .size([height - clusterSpace, clusterSpace]),
       colCluster = d3.layout.cluster()
         .size([width - clusterSpace, clusterSpace]),
-      colors = ["#0084FF", "#188EF7", "#3199EF", "#49A4E8", "#62AFE0", "#7ABAD9", "#93C5D1", "#ABD0C9", "#C4DBC2", "#DCE6BA", "#F5F1B3", "#F5DBA3", "#F6C694", "#F6B085", "#F79B76", "#F78667", "#F87057", "#F85B48", "#F94539", "#F9302A", "#FA1B1B"],
       rowNodes = rowCluster.nodes(data.rowJSON),
       colNodes = colCluster.nodes(data.colJSON),
       rowLabel = labelsFromTree(rowNodes, rowCluster),
       colLabel = labelsFromTree(colNodes, colCluster);
     
     
-    let matrix = [], min = 0, max = 0;
+    let matrix = [], max = 0;
     for (let r = 0; r < rowNumber; r++) {
       for (let c = 0; c < colNumber; c++) {
         matrix.push({row: r + 1, col: c + 1, value: data.matrix[r][c]});
-        min = Math.min(min, data.matrix[r][c]);
         max = Math.max(max, data.matrix[r][c]);
       }
     }
-
-    let middle = d3.median(matrix, function (d) {
-      return d.value;
-    });
-
-    console.log("Current Middle Point: " + middle)
-
-    let colorScale = d3.scale.quantile()
-      .domain([min, middle, max])
-      .range(colors);
 
     svg.selectAll("*").remove();
 
@@ -124,7 +112,11 @@
       .attr("width", cellSize)
       .attr("height", cellSize)
       .style("fill", function (d) {
-        return colorScale(d.value);
+        let intensity = 0.3 + 0.7 * d.value / max;
+        let red = 255 * (1 - intensity);
+        let green = 255 * (1 - intensity) + 140 * intensity;
+        let blue = 255 * (1 - intensity) + 251 * intensity;
+        return d.value ? `rgb(${red}, ${green}, ${blue})` : "white";
       })
       .on("mouseover", function (d) {
         d3.select(this).classed("cell-hover", true);
