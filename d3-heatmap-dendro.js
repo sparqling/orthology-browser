@@ -3,7 +3,6 @@
  */
 
 (function () {
-  
   function showToolTip(target, tip) {
     d3.select(target).classed("cell-hover", true);
     //Update the tooltip position and value
@@ -28,17 +27,15 @@
   }
 
   d3.heatmapDendro = function (data, parent) {
-
     if (!data || !data.matrix)
       return;
-    ;
 
+    d3.select(parent).selectAll("*").remove();
+    
     let svg = d3.select(parent)
       .append("svg")
       .attr("width", "100%")
-      .attr("height", "150px");
-
-    let margin = {top: 10, right: 0, bottom: 10, left: 0};
+      .attr("height", "100%");
 
     let labelsFromTree = function (nodes, cluster) {
       let labels = [];
@@ -50,22 +47,25 @@
       }
       return labels;
     };
+    
+    let container = document.querySelector(parent);
 
     let clusterSpace = 150, // size of the cluster tree
-      cellSize = 20,
       colNumber = data.matrix[0].length,
       rowNumber = data.matrix.length,
-      width = cellSize * colNumber + clusterSpace, // - margin.left - margin.right,
-      height = cellSize * rowNumber + clusterSpace, // - margin.top - margin.bottom,
+      width =
+        container.offsetWidth * 0.8 - clusterSpace,
+      height = container.offsetHeight * 0.8 - clusterSpace,
       rowCluster = d3.layout.cluster()
-        .size([height - clusterSpace, clusterSpace]),
+        .size([height, clusterSpace]),
       colCluster = d3.layout.cluster()
-        .size([width - clusterSpace, clusterSpace]),
+        .size([width, clusterSpace]),
       rowNodes = rowCluster.nodes(data.rowJSON),
       colNodes = colCluster.nodes(data.colJSON),
       rowLabel = labelsFromTree(rowNodes, rowCluster),
       colLabel = labelsFromTree(colNodes, colCluster);
-    
+    let cellWidth = width / colNumber;
+    let cellHeight = height / rowNumber;
     
     let matrix = [], max = 0;
     for (let r = 0; r < rowNumber; r++) {
@@ -77,9 +77,6 @@
 
     svg.selectAll("*").remove();
 
-    svg.attr("width", width + margin.left + margin.right + clusterSpace)
-      .attr("height", height + margin.top + margin.bottom + clusterSpace);
-
     let rowLabels = svg.append("g")
       .selectAll(".rowLabelg")
       .data(rowLabel)
@@ -90,10 +87,10 @@
       })
       .attr("x", 0)
       .attr("y", function (d, i) {
-        return (i + 1) * cellSize + clusterSpace;
+        return (i + 1) * cellHeight + clusterSpace;
       })
       .style("text-anchor", "start")
-      .attr("transform", "translate(" + (width + cellSize) + "," + cellSize / 1.5 + ")")
+      .attr("transform", `translate(${width + clusterSpace + 6}, ${-cellHeight * 0.3})`)
       .on("mouseover", function (d) {
         let data = mapNameToTaxa[d];
         if (!data)
@@ -120,10 +117,10 @@
       })
       .attr("x", 0)
       .attr("y", function (d, i) {
-        return (i + 1) * cellSize;
+        return (i + 1) * cellWidth + clusterSpace;
       })
       .style("text-anchor", "end")
-      .attr("transform", "translate(" + cellSize / 2 + ",-6) rotate (-90)  translate( -" + (height + cellSize * 2) + "," + clusterSpace + ")")
+      .attr("transform", `translate(${-cellWidth / 2}, ${height + clusterSpace + 6}) rotate(-90)`)
       .on("mouseover", function (d) {
         let data = mapDisplayedNameToProtein[d];
         let tip = "<ui>";
@@ -146,18 +143,16 @@
       .enter()
       .append("rect")
       .attr("x", function (d) {
-        return d.col * cellSize + clusterSpace;
+        return (d.col - 1) * cellWidth + clusterSpace;
       })
       .attr("y", function (d) {
-        return d.row * cellSize + clusterSpace;
+        return (d.row - 1) * cellHeight + clusterSpace;
       })
       .attr("class", function (d) {
         return "cell cell-border cr" + (d.row - 1) + " cc" + (d.col - 1);
       })
-      .attr("data-row", (d) => d.row - 1)
-      .attr("data-col", (d) => d.col - 1)
-      .attr("width", cellSize)
-      .attr("height", cellSize)
+      .attr("width", cellWidth)
+      .attr("height", cellHeight)
       .style("fill", function (d) {
         let intensity = 0.3 + 0.7 * d.value / max;
         let red = 255 * (1 - intensity);
@@ -174,8 +169,9 @@
       .on("mouseout", hideTooltip)
     ;
 
-//tree for rows
-    let rTree = svg.append("g").attr("class", "rtree").attr("transform", "translate (10, " + (clusterSpace + cellSize) + ")");
+    //tree for rows
+    let rTree = svg.append("g").attr("class", "rtree")
+      .attr("transform", `translate (0, ${(clusterSpace)})`);
     let rlink = rTree.selectAll(".rlink")
       .data(rowCluster.links(rowNodes))
       .enter().append("path")
@@ -190,8 +186,9 @@
         return "translate(" + d.y + "," + d.x + ")";
       });
 
-//tree for cols
-    let cTree = svg.append("g").attr("class", "ctree").attr("transform", "rotate (90), translate (10, -" + (clusterSpace + cellSize) + ") scale(1,-1)");
+    //tree for cols
+    let cTree = svg.append("g").attr("class", "ctree")
+      .attr("transform", `rotate (90), translate (0, ${-(clusterSpace)}) scale(1,-1)`);
     let clink = cTree.selectAll(".clink")
       .data(rowCluster.links(colNodes))
       .enter().append("path")

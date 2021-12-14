@@ -403,5 +403,11 @@ function renderChart() {
 }
 
 
-$(UpdateChart);
+
+$(() => {
+  window.addEventListener('resize', (event) => {
+    renderChart();
+  }, true);
+  UpdateChart();
+});
 
