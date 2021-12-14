@@ -27,6 +27,7 @@ let comparedTaxa = [];
 let proteins = [];
 let tooltips = {};
 let series = null;
+let taxonTree = null;
 
 let maxParalogNum = 0;
 let mapNameToTaxa = {}, mapTaxIdToTaxa = {},
@@ -95,7 +96,12 @@ function UpdateChart() {
       let taxonId = localStorage.getObject(key)?.genome_taxid;
       if (taxonId && taxonId !== baseTaxon.genome_taxid) {
         let entry = localStorage.getObject(key);
-        entry.displayedName = entry.organism_name.replaceAll(/^[^\(].*\((.*)\)/g, '$1');
+        if(entry.organism_name.includes("(")) {
+          let matched = entry.organism_name.match(/^[^\(]+\(([^\)]+)\)/);
+          if(matched)
+            entry.displayedName = matched[1];
+        }
+        entry.displayedName = entry.displayedName || entry.organism_name;
         comparedTaxa.push(entry);
         mapNameToTaxa[entry.displayedName] = entry;
         mapTaxIdToTaxa[taxonId] = entry;
@@ -216,9 +222,63 @@ function UpdateChart() {
       })
     });
 
+    
 
-    renderChart();
+    queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
+      let tree = constructTree(res.results);
+      taxonTree = simplifyTree(tree);
+      renderChart();
+    },  endpoint);
   }, "https://orth.dbcls.jp/sparql-proxy-oma");
+}
+
+
+/// Construct tree from result of taxonomy_tree.rq
+function constructTree(result) {
+  let nodeMap = {};
+  for(let row of result.bindings) {
+    let childId = row.taxon_int.value;
+    let parentId = row.parent_int.value;
+    if(!nodeMap[parentId])
+      nodeMap[parentId] = {
+        id: parentId,
+        name: row.parent_label.value,
+        children: [],
+        parent: null
+      };
+    
+    if(!nodeMap[childId])
+      nodeMap[childId] = {
+        id: childId,
+        name: mapTaxIdToTaxa[childId]?.displayedName,
+        children: [],
+        parent: null
+      };
+    
+    nodeMap[parentId].children.push(nodeMap[childId]);
+    nodeMap[childId].parent = nodeMap[parentId];
+  }
+  if(nodeMap.length === 0)
+    return null;
+  let root = nodeMap[Object.keys(nodeMap)[0]];
+  while(root.parent) {
+     root = root.parent;
+  }
+  return root;
+}
+
+/// Create simple tree for dendrogram that includes only branches and leaves 
+function simplifyTree(node) {
+  if(node.children.length === 1)
+    return simplifyTree(node.children[0]);
+  else {
+    let simplifiedChildren = [];
+    for(let child of node.children) {
+      simplifiedChildren.push(simplifyTree(child));
+    }
+    node.children = simplifiedChildren;
+    return node;
+  }
 }
 
 function renderChart() {
@@ -323,20 +383,7 @@ function renderChart() {
     });
   let dataForD3 = {};
 
-  let rowJson = {};
-  let currentNode = rowJson;
-  series.forEach((elem, i) => {
-    let childNode = {};
-    currentNode.name = 'intermediate_node';
-    if(i < series.length - 1) {
-      currentNode.children = [{name: elem.name}, childNode];
-      currentNode = childNode;
-    } else {
-      currentNode.name = elem.name;
-    }
-  });
-  
-  dataForD3.rowJSON = rowJson;
+  dataForD3.rowJSON = taxonTree;
   let cluster = hcluster().distance('euclidean').linkage('avg').posKey('val').data(columnVectors);
   dataForD3.colJSON = cluster.tree();
   matrix = [];
@@ -353,24 +400,6 @@ function renderChart() {
   dataForD3.matrix = matrix;
   
   d3.heatmapDendro(dataForD3, "#heatmap", 5000);
-}
-
-function createMatrixFromTree( matrix) {
-  
-}
-
-let i = 0;
-function fckTreeToD3(fckTree) {
-  if(fckTree.size === 1) {
-    return {
-      "name": [fckTree.value.name],
-      "chidren": []
-    };
-  } 
-  return {
-    "name": [++i],
-    children: [fckTreeToD3(fckTree.right), fckTreeToD3(fckTree.left)]
-  }
 }
 
 

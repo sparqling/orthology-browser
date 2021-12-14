@@ -17,6 +17,15 @@
       .duration(200)
       .style("opacity", .9);
   }
+  
+  function hideTooltip() {
+    d3.select(this).classed("cell-hover", false);
+    d3.selectAll(".rowLabel").classed("text-highlight", false);
+    d3.selectAll(".colLabel").classed("text-highlight", false);
+    d3.select("#d3tooltip").transition()
+      .duration(200)
+      .style("opacity", 0);
+  }
 
   d3.heatmapDendro = function (data, parent) {
 
@@ -96,6 +105,7 @@
         tip += "</ui>";
         showToolTip(this, tip);
       })
+      .on("mouseout", hideTooltip)
       .attr("class", function (d, i) {
         return "rowLabel mono r" + i;
       });
@@ -123,6 +133,7 @@
         tip += "</ui>";
         showToolTip(this, tip);
       })
+      .on("mouseout", hideTooltip)
       .attr("class", function (d, i) {
         return "colLabel mono c" + i;
       });
@@ -160,14 +171,7 @@
           return '';
         showToolTip(this, tips);
       })
-      .on("mouseout", function () {
-        d3.select(this).classed("cell-hover", false);
-        d3.selectAll(".rowLabel").classed("text-highlight", false);
-        d3.selectAll(".colLabel").classed("text-highlight", false);
-        d3.select("#d3tooltip").transition()
-          .duration(200)
-          .style("opacity", 0);
-      })
+      .on("mouseout", hideTooltip)
     ;
 
 //tree for rows
