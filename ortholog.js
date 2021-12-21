@@ -241,8 +241,9 @@ function UpdateChart() {
     
 
     queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
-      let tree = constructTree(res.results);
-      taxonTree = simplifyTree(tree);
+      taxonTree = constructTree(res.results);
+      // taxonTree = simplifyTree(tree);
+      
       renderChart();
     },  endpoint);
   }, "https://orth.dbcls.jp/sparql-proxy-oma");

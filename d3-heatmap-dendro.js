@@ -16,6 +16,14 @@
       .duration(200)
       .style("opacity", .9);
   }
+
+  function truncateString(str, num) {
+    if (str.length > num) {
+      return str.slice(0, num) + "…";
+    } else {
+      return str;
+    }
+  }
   
   function hideTooltip() {
     d3.select(this).classed("cell-hover", false);
@@ -57,15 +65,17 @@
         container.offsetWidth * 0.8 - clusterSpace,
       height = container.offsetHeight * 0.8 - clusterSpace,
       rowCluster = d3.layout.cluster()
-        .size([height, clusterSpace]),
+        .size([height, clusterSpace]).separation(() => 1),
       colCluster = d3.layout.cluster()
-        .size([width, clusterSpace]),
+        .size([width, clusterSpace]).separation(() => 1),
       rowNodes = rowCluster.nodes(data.rowJSON),
       colNodes = colCluster.nodes(data.colJSON),
       rowLabel = labelsFromTree(rowNodes, rowCluster),
       colLabel = labelsFromTree(colNodes, colCluster);
     let cellWidth = width / colNumber;
     let cellHeight = height / rowNumber;
+    const rowLabelWidth = 150;
+    const colLabelHeight = 80;
     
     let matrix = [], max = 0;
     for (let r = 0; r < rowNumber; r++) {
@@ -83,14 +93,14 @@
       .enter()
       .append("text")
       .text(function (d) {
-        return d;
+        return truncateString(d, 20);
       })
-      .attr("x", 0)
+      .attr("x", clusterSpace)
       .attr("y", function (d, i) {
-        return (i + 1) * cellHeight + clusterSpace;
+        return (i + 1) * cellHeight + clusterSpace + colLabelHeight + 6;
       })
-      .style("text-anchor", "start")
-      .attr("transform", `translate(${width + clusterSpace + 6}, ${-cellHeight * 0.3})`)
+      .style("text-anchor", "end")
+      .attr("transform", `translate(${clusterSpace + 6}, ${-cellHeight * 0.3})`)
       .on("mouseover", function (d) {
         let data = mapNameToTaxa[d];
         if (!data)
@@ -117,10 +127,10 @@
       })
       .attr("x", 0)
       .attr("y", function (d, i) {
-        return (i + 1) * cellWidth + clusterSpace;
+        return (i + 1) * cellWidth + clusterSpace + rowLabelWidth + 6;
       })
       .style("text-anchor", "end")
-      .attr("transform", `translate(${-cellWidth / 2}, ${height + clusterSpace + 6}) rotate(-90)`)
+      .attr("transform", `translate(${-cellWidth / 2}, ${clusterSpace + 6}) rotate(-90)`)
       .on("mouseover", function (d) {
         let data = mapDisplayedNameToProtein[d];
         let tip = "<ui>";
@@ -143,10 +153,10 @@
       .enter()
       .append("rect")
       .attr("x", function (d) {
-        return (d.col - 1) * cellWidth + clusterSpace;
+        return (d.col - 1) * cellWidth + clusterSpace + rowLabelWidth + 10;
       })
       .attr("y", function (d) {
-        return (d.row - 1) * cellHeight + clusterSpace;
+        return (d.row - 1) * cellHeight + clusterSpace + colLabelHeight + 10;
       })
       .attr("class", function (d) {
         return "cell cell-border cr" + (d.row - 1) + " cc" + (d.col - 1);
@@ -171,7 +181,7 @@
 
     //tree for rows
     let rTree = svg.append("g").attr("class", "rtree")
-      .attr("transform", `translate (0, ${(clusterSpace)})`);
+      .attr("transform", `translate (0, ${clusterSpace + colLabelHeight + 6})`);
     let rlink = rTree.selectAll(".rlink")
       .data(rowCluster.links(rowNodes))
       .enter().append("path")
@@ -188,9 +198,9 @@
 
     //tree for cols
     let cTree = svg.append("g").attr("class", "ctree")
-      .attr("transform", `rotate (90), translate (0, ${-(clusterSpace)}) scale(1,-1)`);
+      .attr("transform", `rotate (90), translate (0, ${-(clusterSpace + rowLabelWidth)}) scale(1,-1)`);
     let clink = cTree.selectAll(".clink")
-      .data(rowCluster.links(colNodes))
+      .data(colCluster.links(colNodes))
       .enter().append("path")
       .attr("class", "clink")
       .attr("d", elbow);
