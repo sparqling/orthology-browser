@@ -242,7 +242,7 @@ function UpdateChart() {
 
     queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
       taxonTree = constructTree(res.results);
-      // taxonTree = simplifyTree(tree);
+      // taxonTree = simplifyTree(taxonTree);
       
       renderChart();
     },  endpoint);
@@ -299,7 +299,7 @@ function simplifyTree(node) {
 }
 
 function orderedNodes(tree) {
-  if(tree.children.length === 0)
+  if(!tree.children || tree.children.length === 0)
     return [tree];
   else {
     let nodes = [];
