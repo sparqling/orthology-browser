@@ -29,6 +29,7 @@ let tooltips = {};
 let tooltipMap = {};
 let series = null;
 let taxonTree = null;
+let humanNode = null;
 let paraNumMap = null;
 
 let maxParalogNum = 0;
@@ -241,7 +242,8 @@ function UpdateChart() {
     
 
     queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
-      taxonTree = constructTree(res.results);
+      [taxonTree, humanNode] = constructTree(res.results);
+      raiseNode(humanNode);
       // taxonTree = simplifyTree(taxonTree);
       
       renderChart();
@@ -253,6 +255,7 @@ function UpdateChart() {
 /// Construct tree from result of taxonomy_tree.rq
 function constructTree(result) {
   let nodeMap = {};
+  let humanNode_ = null;
   for(let row of result.bindings) {
     let childId = row.taxon_int.value;
     let parentId = row.parent_int.value;
@@ -274,6 +277,9 @@ function constructTree(result) {
     
     nodeMap[parentId].children.push(nodeMap[childId]);
     nodeMap[childId].parent = nodeMap[parentId];
+    if(childId === '9606'){
+      humanNode_ = nodeMap[childId];
+    }
   }
   if(nodeMap.length === 0)
     return null;
@@ -281,7 +287,7 @@ function constructTree(result) {
   while(root.parent) {
      root = root.parent;
   }
-  return root;
+  return [root, humanNode_];
 }
 
 /// Create simple tree for dendrogram that includes only branches and leaves 
@@ -295,6 +301,21 @@ function simplifyTree(node) {
     }
     node.children = simplifiedChildren;
     return node;
+  }
+}
+
+// Raise subtree including the specified node to be the first child for each parent node
+function raiseNode(node) {
+  let parent = node.parent;
+  if(parent) {
+    if(parent.children.length > 0 && parent.children[0] !== node) {
+      let index = parent.children.indexOf(node);
+      if(index >= 0) {
+        parent.children[index] = parent.children[0];
+        parent.children[0] = node;
+      }
+    }
+    raiseNode(parent);
   }
 }
 
