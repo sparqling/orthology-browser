@@ -203,7 +203,7 @@ function UpdateChart() {
           id: up_id,
           x: protein.displayedName,
           y: paralogNum,
-          tooltip: protMap[up_id] ?? ''
+          tooltip: `${paralogNum}: ` + (protMap[up_id] ?? '')
         };
       });
       let cellNum = data.reduce((accum, elem) => accum + (elem.y > 0 ? 1 : 0), 0);
