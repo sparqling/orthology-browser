@@ -1,4 +1,5 @@
 const endpoint = 'https://orth.dbcls.jp/sparql-proxy';
+const dbpediaEndpoint = 'https://dbpedia.org/sparql';
 
 const taxonPrefix = "taxonomy-browser-proteome-";
 const proteinPrefix = 'go-browser-protein-';
@@ -39,6 +40,7 @@ mapDisplayedNameToProtein = {};
 
 mapNameToTaxa[baseTaxon.displayedName] = baseTaxon;
 mapTaxIdToTaxa[baseTaxon.genome_taxid] = baseTaxon;
+mapTaxIdToThumbnail = {};
 
 Storage.prototype.getObject = function (key) {
   let val = this.getItem(key);
@@ -72,6 +74,29 @@ function mdsClassic(distances, dimensions) {
   });
 };
 
+
+function queryBySpang(queryUrl, param, callback, target_end = null) {
+  $.get(queryUrl, (query) => {
+    spang.query(query, target_end ? target_end : endpoint, {
+      param: param,
+      format: 'json'
+    }, (error, status, result) => {
+      let resultJson;
+      try {
+        resultJson = JSON.parse(result);
+      } catch (e) {
+        console.log(e);
+        resultJson = {
+          results:
+            {
+              bindings: {}
+            }
+        };
+      }
+      callback(resultJson);
+    });
+  });
+}
 
 function UpdateChart() {
   if (chart)
@@ -140,28 +165,6 @@ function UpdateChart() {
     }
   }
 
-  function queryBySpang(queryUrl, param, callback, target_end = null) {
-    $.get(queryUrl, (query) => {
-      spang.query(query, target_end ? target_end : endpoint, {
-        param: param,
-        format: 'json'
-      }, (error, status, result) => {
-        let resultJson;
-        try {
-          resultJson = JSON.parse(result);
-        } catch (e) {
-          console.log(e);
-          resultJson = {
-            results:
-              {
-                bindings: {}
-              }
-          };
-        }
-        callback(resultJson);
-      });
-    });
-  }
 
   function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -454,6 +457,7 @@ function renderChart() {
   dataForD3.matrix = matrix;
   
   d3.heatmapDendro(dataForD3, "#heatmap", 5000);
+  showDbpediaImage(comparedTaxa);
 }
 
 
@@ -465,3 +469,47 @@ $(() => {
   UpdateChart();
 });
 
+
+function dbpedia_uri(taxonName) {
+  if (taxonName == 'Chania'
+    || taxonName == 'Nitrososphaeria'
+    || taxonName == 'Candidatus Korarchaeum cryptofilum') {
+    return;
+  } else if (taxonName == 'Proteus') {
+    return {name: 'Proteus_(bacterium)', uri: '<http://dbpedia.org/resource/Proteus_(bacterium)>'};
+  } else if (taxonName == 'Pan') {
+    return {name: 'Pan_(genus)', uri: '<http://dbpedia.org/resource/Pan_(genus)>'};
+  }
+
+
+  let matched = taxonName.match(/^[^\(]+/);
+  if(matched)
+    taxonName = matched[0].trim();
+
+  let dbpedia_name = taxonName
+    .replace(/\s/g, '_')
+    .replace(/^Candidatus_/, '')
+    .replace(/\//g, '_')
+    .replace(/'/g, '')
+    .replace(/\(/g, '_').replace(/\)/g, '_')
+    .replace(/\[/g, '').replace(/\]/g, '');
+
+  return 'dbpedia:' + dbpedia_name;
+}
+
+function showDbpediaImage(taxa) {
+  taxa.forEach((taxon) => {
+    if(mapTaxIdToThumbnail[taxon.genome_taxid]) {
+      document.getElementById(`row-image-${taxon.displayedName}`).setAttribute('href', mapTaxIdToThumbnail[taxon.genome_taxid]);
+    } else {
+      queryBySpang(`sparql/dbpedia_thumbnails.rq`, {
+          taxon: dbpedia_uri(taxon.organism_name),
+        }, (res) => {
+          let thumbnailUri = res.results.bindings[0]?.image.value;
+          document.getElementById(`row-image-${taxon.displayedName}`).setAttribute('href', thumbnailUri);
+          mapTaxIdToThumbnail[taxon.genome_taxid] = thumbnailUri;  
+        }, dbpediaEndpoint
+      )
+    }
+  })
+}

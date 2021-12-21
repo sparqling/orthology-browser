@@ -95,7 +95,7 @@
       .text(function (d) {
         return truncateString(d, 20);
       })
-      .attr("x", clusterSpace)
+      .attr("x", clusterSpace + cellHeight)
       .attr("y", function (d, i) {
         return (i + 1) * cellHeight + clusterSpace + colLabelHeight + 6;
       })
@@ -116,6 +116,22 @@
       .attr("class", function (d, i) {
         return "rowLabel mono r" + i;
       });
+
+    let rowImages = svg.append("g")
+      .selectAll(".rowLabelg")
+      .data(rowLabel)
+      .enter()
+      .append("image")
+      .attr("xlink:href", (d, i) => i === 0 ? "http://commons.wikimedia.org/wiki/Special:FilePath/Akha_cropped_hires.JPG?width=300" : '')
+      .attr("x", clusterSpace)
+      .attr("y", function (d, i) {
+        return i * cellHeight + clusterSpace + colLabelHeight + 6;
+      })
+      .attr("width", cellHeight)
+      .attr("class", "thumbnail")
+      .attr('id', (d) => `row-image-${d}`)
+      .attr("height", cellHeight);
+
 
     let colLabels = svg.append("g")
       .selectAll(".colLabelg")
@@ -145,6 +161,8 @@
         return "colLabel mono c" + i;
       });
 
+
+
     let heatMap = svg.append("g").attr("class", "g3")
       .selectAll(".cellg")
       .data(matrix, function (d) {
@@ -153,7 +171,7 @@
       .enter()
       .append("rect")
       .attr("x", function (d) {
-        return (d.col - 1) * cellWidth + clusterSpace + rowLabelWidth + 10;
+        return (d.col - 1) * cellWidth + clusterSpace + rowLabelWidth + 10 + cellHeight;
       })
       .attr("y", function (d) {
         return (d.row - 1) * cellHeight + clusterSpace + colLabelHeight + 10;
@@ -186,6 +204,13 @@
       .data(rowCluster.links(rowNodes))
       .enter().append("path")
       .attr("class", "rlink")
+      .on("mouseover", function (d) {
+        let tips = d.target.name;
+        if (!tips)
+          return '';
+        // showToolTip(this, tips);
+      })
+      // .on("mouseout", hideTooltip)
       .attr("d", elbow);
 
     let rnode = rTree.selectAll(".rnode")
@@ -206,7 +231,7 @@
       .attr("d", elbow);
 
     let cnode = cTree.selectAll(".cnode")
-      .data(rowNodes)
+      .data(colNodes)
       .enter().append("g")
       .attr("class", "cnode")
       .attr("transform", function (d) {
