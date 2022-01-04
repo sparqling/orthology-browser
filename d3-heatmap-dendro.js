@@ -122,15 +122,27 @@
       .data(rowLabel)
       .enter()
       .append("image")
-      .attr("xlink:href", (d, i) => i === 0 ? "http://commons.wikimedia.org/wiki/Special:FilePath/Akha_cropped_hires.JPG?width=300" : '')
       .attr("x", clusterSpace)
       .attr("y", function (d, i) {
         return i * cellHeight + clusterSpace + colLabelHeight + 6;
       })
       .attr("width", cellHeight)
-      .attr("class", "thumbnail")
+      .attr("class", "taxon-image")
       .attr('id', (d) => `row-image-${d}`)
-      .attr("height", cellHeight);
+      .attr("height", cellHeight)
+      .on('mouseover',  function(d) {
+          console.log(this.href.animVal);
+          //Update the tooltip position and value
+          d3.select("#d3tooltip")
+            .style("left", (d3.event.pageX + 10) + "px")
+            .style("top", (d3.event.pageY - 10) + "px")
+            .select("#value")
+            .html(`${d}<br><img width="300" height="auto" src="${this.href.animVal}">`);
+          // //Show the tooltip
+          d3.select("#d3tooltip").transition()
+            .duration(200)
+            .style("opacity", .9);
+       });
 
 
     let colLabels = svg.append("g")
