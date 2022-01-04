@@ -143,7 +143,7 @@
       })
       .attr("x", 0)
       .attr("y", function (d, i) {
-        return (i + 1) * cellWidth + clusterSpace + rowLabelWidth + 6;
+        return (i + 1) * cellWidth + cellHeight + clusterSpace + rowLabelWidth + 12;
       })
       .style("text-anchor", "end")
       .attr("transform", `translate(${-cellWidth / 2}, ${clusterSpace + 6}) rotate(-90)`)
@@ -223,7 +223,7 @@
 
     //tree for cols
     let cTree = svg.append("g").attr("class", "ctree")
-      .attr("transform", `rotate (90), translate (0, ${-(clusterSpace + rowLabelWidth)}) scale(1,-1)`);
+      .attr("transform", `rotate (90), translate (0, ${-(clusterSpace + rowLabelWidth + cellHeight + 10)}) scale(1,-1)`);
     let clink = cTree.selectAll(".clink")
       .data(colCluster.links(colNodes))
       .enter().append("path")
