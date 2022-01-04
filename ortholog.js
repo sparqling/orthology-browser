@@ -50,34 +50,6 @@ Storage.prototype.getObject = function (key) {
   return val && JSON.parse(val) || {};
 }
 
-function mdsClassic(distances, dimensions) {
-  dimensions = dimensions || 2;
-
-  // square distances
-  let M = numeric.mul(-.5, numeric.pow(distances, 2));
-
-  // double centre the rows/columns
-  function mean(A) { return numeric.div(numeric.add.apply(null, A), A.length); }
-  let rowMeans = mean(M),
-    colMeans = mean(numeric.transpose(M)),
-    totalMean = mean(rowMeans);
-
-  for (let i = 0; i < M.length; ++i) {
-    for (let j =0; j < M[0].length; ++j) {
-      M[i][j] += totalMean - rowMeans[j] - colMeans[i];
-    }
-  }
-
-  // take the SVD of the double centred matrix, and return the
-  // points from it
-  let ret = numeric.svd(M),
-    eigenValues = numeric.sqrt(ret.S);
-  return ret.U.map(function(row) {
-    return numeric.mul(row, eigenValues).splice(0, dimensions);
-  });
-};
-
-
 function queryBySpang(queryUrl, param, callback, target_end = null) {
   $.get(queryUrl, (query) => {
     spang.query(query, target_end ? target_end : endpoint, {
@@ -102,9 +74,6 @@ function queryBySpang(queryUrl, param, callback, target_end = null) {
 }
 
 function UpdateChart() {
-  if (chart)
-    chart.destroy();
-
   comparedTaxa = [];
   proteins = [];
   tooltips = {};
@@ -119,8 +88,8 @@ function UpdateChart() {
   mapNameToTaxa[baseTaxon.displayedName] = baseTaxon;
   mapTaxIdToTaxa[baseTaxon.genome_taxid] = baseTaxon;
   
+  $('#heatmap').hide();
   $('#loader-container').show();
-  $('#chart').hide();
   for (let i = 0; i < localStorage.length; i++) {
     let key = localStorage.key(i);
     if (key.startsWith(taxonPrefix)) {
@@ -150,8 +119,8 @@ function UpdateChart() {
   
   if(proteins.length === 0 || comparedTaxa.length === 0) {
     $('#loader-container').hide();
-    $('#chart').show();
-    $('#chart')[0].innerText = "No candidates selected";
+    $('#heatmap').show();
+    $('#heatmap')[0].innerText = "No candidates selected";
     return;
   }
 
@@ -236,15 +205,6 @@ function UpdateChart() {
     let columnVectors = [];
     for(let i = 0; i < series[0].data.length; i++)
       columnVectors.push(series.map(elem => elem.data[i].y));
-    // let mdsResult = mdsClassic(columnVectors, 1);
-    // series.forEach((elem, i) => {
-    //   elem.data.forEach((datum, j) => datum.position = mdsResult[j]);
-    //   elem.data.sort((cell1, cell2) => cell2.position - cell1.position);
-    //   elem.data.forEach((datum, j) => {
-    //   })
-    // });
-
-    
     
     queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
       [taxonTree, humanNode] = constructTree(res.results);
@@ -363,96 +323,8 @@ function orderedLeaves(tree) {
 }
 
 function renderChart() {
-  let options = {
-    series,
-    chart: {
-      height: 350,
-      type: 'heatmap',
-    },
-    dataLabels: {
-      enabled: false
-    },
-    plotOptions: {
-      heatmap: {
-        colorScale: {
-          ranges: [
-            {
-              from: 0,
-              to: 0,
-              name: ' ',
-              color: '#FFFFFF'
-            },
-            {
-              from: 1,
-              to: maxParalogNum,
-              name: ' ',
-              color: '#008FFB'
-            },
-          ]
-        },
-      }
-    },
-    title: {
-      text: `Orthology Map from ${$('#database-select').val()}`
-    },
-    legend: {
-      show: false,
-      inverseOrder: true
-    },
-    xaxis: {
-      position: 'top',
-      labels: {
-        rotate: -90
-      },
-    },
-    yaxis: {
-      reversed: true
-    },
-    // tooltip: {
-    //   custom: function ({series, seriesIndex, dataPointIndex, w}) {
-    //     let tips = tooltips[seriesIndex][dataPointIndex];
-    //     if (!tips)
-    //       return '';
-    //     return '<div class="arrow_box">' +
-    //       '<span>' + tips.join('<br>') + '</span>' +
-    //       '</div>';
-    //   },
-    // }
-  };
-  chart = new ApexCharts(document.querySelector("#chart"), options);
   $('#loader-container').hide();
-  $('#chart').show();
-  chart.render();
-
-  tippy('.apexcharts-xaxis-label', {
-    content: (elem) => {
-      let displayedName = elem.getElementsByTagName('title')?.[0].innerHTML;
-      let data = mapDisplayedNameToProtein[displayedName];
-      let tip = "<ui>";
-      for (let [key, val] of Object.entries(data)) {
-        tip += `<li>${key}: ${val}</\li>`;
-      }
-      tip += "</ui>";
-      return tip;
-    },
-    allowHTML: true
-  });
-
-  tippy('.apexcharts-yaxis-label', {
-    content: (elem) => {
-      let organismName = elem.getElementsByTagName('title')?.[0].innerHTML;
-      let data = mapNameToTaxa[organismName];
-      if (!data)
-        return '';
-      let tip = "<ui>";
-      for (let [key, val] of Object.entries(data)) {
-        tip += `<li>${key}: ${val}</\li>`;
-      }
-      tip += "</ui>";
-      return tip;
-    },
-    allowHTML: true
-  });
+  $('#heatmap').show();
   
   let columnVectors = [];
   for(let i = 0; i < series[0].data.length; i++) {
