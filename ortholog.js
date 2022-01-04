@@ -212,12 +212,12 @@ function UpdateChart() {
           tooltip: `${paralogNum}: ` + (protMap[up_id] ?? '')
         };
       });
-      let cellNum = data.reduce((accum, elem) => accum + (elem.y > 0 ? 1 : 0), 0);
       return {
         id: taxId,
         name: mapTaxIdToTaxa[taxId].displayedName,
         data,
-        cellNum,
+        cellNum: data.filter(datum => datum.y > 0).length,
+        sum: data.reduce((num, datum) => num + datum.y, 0),
       };
     });
 
@@ -231,9 +231,8 @@ function UpdateChart() {
         tooltipMap[tax.id][prot.id] = prot.tooltip;
       }
     }
-    
-    series.sort((row1, row2) => row2.cellNum - row1.cellNum);
-    series.sort((row1, row2) => row2.cellNum - row1.cellNum);
+
+    series.sort((row1, row2) => row1.cellNum < row2.cellNum || (row1.cellNum == row2.cellNum) && row1.sum < row2.sum ? 1 : -1);
     let columnVectors = [];
     for(let i = 0; i < series[0].data.length; i++)
       columnVectors.push(series.map(elem => elem.data[i].y));
