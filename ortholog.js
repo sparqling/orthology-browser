@@ -234,13 +234,13 @@ function UpdateChart() {
     let columnVectors = [];
     for(let i = 0; i < series[0].data.length; i++)
       columnVectors.push(series.map(elem => elem.data[i].y));
-    let mdsResult = mdsClassic(columnVectors, 1);
-    series.forEach((elem, i) => {
-      elem.data.forEach((datum, j) => datum.position = mdsResult[j]);
-      elem.data.sort((cell1, cell2) => cell2.position - cell1.position);
-      elem.data.forEach((datum, j) => {
-      })
-    });
+    // let mdsResult = mdsClassic(columnVectors, 1);
+    // series.forEach((elem, i) => {
+    //   elem.data.forEach((datum, j) => datum.position = mdsResult[j]);
+    //   elem.data.sort((cell1, cell2) => cell2.position - cell1.position);
+    //   elem.data.forEach((datum, j) => {
+    //   })
+    // });
 
     
 
