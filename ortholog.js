@@ -7,7 +7,8 @@ const proteinPrefix = 'go-browser-protein-';
 
 let chart = null;
 
-let orderedByCellNum = false;
+let hOrderedByCellNum = false;
+let vOrderedByCellNum = false;
 
 let baseTaxon = {
   genome_taxid: "9606",
@@ -454,27 +455,36 @@ function renderChart() {
     allowHTML: true
   });
   
-  
-  
   let columnVectors = [];
-  for(let i = 0; i < series[0].data.length; i++)
+  for(let i = 0; i < series[0].data.length; i++) {
+    let values = series.map(elem => elem.data[i].y);
     columnVectors.push({
-      val: series.map(elem => elem.data[i].y),
+      val: values,
       name: series[0].data[i].x,
-      id: series[0].data[i].id
+      id: series[0].data[i].id,
+      cellNum: values.filter((y) => y > 0).length,
+      sum: values.reduce((a, b) => a + b),
     });
+  }
   let dataForD3 = {};
+  columnVectors.sort((col1, col2) => col1.cellNum < col2.cellNum || (col1.cellNum == col2.cellNum) && col1.sum < col2.sum ? 1 : -1);
 
-  if(orderedByCellNum) {
+  if(hOrderedByCellNum) {
+    dataForD3.colJSON = constructDummyTree(columnVectors);
+  } else {
+    let cluster = hcluster().distance('euclidean').linkage('avg').posKey('val').data(columnVectors);
+    dataForD3.colJSON = cluster.tree();
+  }
+  let orderedProteins = orderedLeaves(dataForD3.colJSON);
+
+  if(vOrderedByCellNum) {
     dataForD3.rowJSON = constructDummyTree(series);
   } else {
     dataForD3.rowJSON = taxonTree;
   }
-  let cluster = hcluster().distance('euclidean').linkage('avg').posKey('val').data(columnVectors);
-  dataForD3.colJSON = cluster.tree();
-  matrix = [];
   let orderedTaxons = orderedLeaves(dataForD3.rowJSON);
-  let orderedProteins = cluster.orderedNodes();
+  
+  matrix = [];
   
   tooltips = {};
   orderedTaxons.forEach((tax, j) => {
@@ -488,7 +498,7 @@ function renderChart() {
   });
   dataForD3.matrix = matrix;
   
-  d3.heatmapDendro(dataForD3, "#heatmap", !orderedByCellNum);
+  d3.heatmapDendro(dataForD3, "#heatmap", !hOrderedByCellNum, !vOrderedByCellNum);
   showDbpediaImage(comparedTaxa);
 }
 
@@ -498,9 +508,14 @@ $(() => {
   window.addEventListener('resize', (event) => {
     renderChart();
   }, true);
+
+  $('#h-order-select').change((e) => {
+    hOrderedByCellNum = e.target.value === "cell";
+    UpdateChart();
+  });
   
   $('#v-order-select').change((e) => {
-    orderedByCellNum = e.target.value === "cell";
+    vOrderedByCellNum = e.target.value === "cell";
     UpdateChart();
   });
   UpdateChart();

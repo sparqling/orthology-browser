@@ -34,7 +34,7 @@
       .style("opacity", 0);
   }
 
-  d3.heatmapDendro = function (data, parent, showRowTree) {
+  d3.heatmapDendro = function (data, parent, showColTree, showRowTree) {
     if (!data || !data.matrix)
       return;
 
@@ -236,21 +236,23 @@
     }
 
     //tree for cols
-    let cTree = svg.append("g").attr("class", "ctree")
-      .attr("transform", `rotate (90), translate (0, ${-(clusterSpace + rowLabelWidth + cellHeight + 10)}) scale(1,-1)`);
-    let clink = cTree.selectAll(".clink")
-      .data(colCluster.links(colNodes))
-      .enter().append("path")
-      .attr("class", "clink")
-      .attr("d", elbow);
+    if(showColTree) {
+      let cTree = svg.append("g").attr("class", "ctree")
+        .attr("transform", `rotate (90), translate (0, ${-(clusterSpace + rowLabelWidth + cellHeight + 10)}) scale(1,-1)`);
+      let clink = cTree.selectAll(".clink")
+        .data(colCluster.links(colNodes))
+        .enter().append("path")
+        .attr("class", "clink")
+        .attr("d", elbow);
 
-    let cnode = cTree.selectAll(".cnode")
-      .data(colNodes)
-      .enter().append("g")
-      .attr("class", "cnode")
-      .attr("transform", function (d) {
-        return "translate(" + d.y + "," + d.x + ")";
-      });
+      let cnode = cTree.selectAll(".cnode")
+        .data(colNodes)
+        .enter().append("g")
+        .attr("class", "cnode")
+        .attr("transform", function (d) {
+          return "translate(" + d.y + "," + d.x + ")";
+        });
+    }
 
     function elbow(d, i) {
       return "M" + d.source.y + "," + d.source.x

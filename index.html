@@ -98,11 +98,18 @@
   <option>Ortho DB</option>
   <option>Meta Prediction</option>
 </select>
+<label for="h-order-select" style="margin-left: 2.5em">Horizontal Order: </label>
+<select style="margin-left: 10px;" id="h-order-select">
+  <option value="tree">Cluster by similarity (tree)</option>
+  <option value="cell">Number of cells</option>
+</select>
 <label for="v-order-select" style="margin-left: 2.5em">Vertical Order: </label>
 <select style="margin-left: 10px;" id="v-order-select">
   <option value="tree">Taxon tree</option>
   <option value="cell">Number of cells</option>
 </select>
+<br>
+<br>
 <div id="heatmap" style="width: 100%; height: 500px; text-align: center;">
 </div>
 
