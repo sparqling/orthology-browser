@@ -131,18 +131,20 @@
       .attr('id', (d) => `row-image-${d}`)
       .attr("height", cellHeight)
       .on('mouseover',  function(d) {
-          console.log(this.href.animVal);
-          //Update the tooltip position and value
-          d3.select("#d3tooltip")
-            .style("left", (d3.event.pageX + 10) + "px")
-            .style("top", (d3.event.pageY - 10) + "px")
-            .select("#value")
-            .html(`${d}<br><img width="300" height="auto" src="${this.href.animVal}">`);
-          // //Show the tooltip
-          d3.select("#d3tooltip").transition()
-            .duration(200)
-            .style("opacity", .9);
-       });
+          if(this.href.animVal !== 'undefined') {
+            //Update the tooltip position and value
+            d3.select("#d3tooltip")
+              .style("left", (d3.event.pageX + 10) + "px")
+              .style("top", (d3.event.pageY - 10) + "px")
+              .select("#value")
+              .html(`${d}<br><img width="300" height="auto" src="${this.href.animVal}">`);
+            // //Show the tooltip
+            d3.select("#d3tooltip").transition()
+              .duration(200)
+              .style("opacity", .9);
+          }
+       })
+      .on("mouseout", hideTooltip);
 
 
     let colLabels = svg.append("g")
