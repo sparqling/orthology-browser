@@ -95,7 +95,7 @@ function show_selected_proteins() {
   html += '';
 
   $('#selected-proteins').html(html)
-  $("#protein-counter").html('<font size="2"><br>You selected <b>' + total + '</b> proteins (from <a target="_blank" href="https://sparqling.github.io/go-browser/">GO browser</a>)<br><br></font>');
+  $("#protein-counter").html('<font size="2"><br>You selected <b>' + total + '</b> proteins (from <a target="_blank" href="/go-browser/">GO browser</a>)<br><br></font>');
 
   for (let i = 0; i < $('.add_protein').length; i++) {
     let each_checkbox = $('.add_protein').eq(i);

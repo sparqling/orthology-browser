@@ -128,7 +128,7 @@ function show_selected_genomes() {
   html += '';
 
   $('#selected-proteomes').html(html)
-  $("#proteome-counter").html('<font size="2"><br>You selected <b>' + total + '</b> proteomes (from <a target="_blank" href="https://sparqling.github.io/taxonomy-browser/">Taxonomy Browser</a>)<br><br></font>');
+  $("#proteome-counter").html('<font size="2"><br>You selected <b>' + total + '</b> proteomes (from <a target="_blank" href="/taxonomy-browser/">Taxonomy Browser</a>)<br><br></font>');
 
   for (let i = 0; i < $('.add_genome').length; i++) {
     let each_checkbox = $('.add_genome').eq(i);
