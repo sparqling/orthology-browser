@@ -509,13 +509,22 @@ $(() => {
     renderChart();
   }, true);
 
+  if(localStorage.getItem('h-order'))
+    $('#h-order-select').val(localStorage.getItem('h-order'));
+  if(localStorage.getItem('v-order'))
+    $('#v-order-select').val(localStorage.getItem('v-order'));
+  hOrderedByCellNum = $('#h-order-select').val() === "cell";
+  vOrderedByCellNum = $('#v-order-select').val() === "cell";
+
   $('#h-order-select').change((e) => {
     hOrderedByCellNum = e.target.value === "cell";
+    localStorage.setItem('h-order', e.target.value);
     UpdateChart();
   });
   
   $('#v-order-select').change((e) => {
     vOrderedByCellNum = e.target.value === "cell";
+    localStorage.setItem('v-order', e.target.value);
     UpdateChart();
   });
   UpdateChart();
