@@ -34,7 +34,7 @@
       .style("opacity", 0);
   }
 
-  d3.heatmapDendro = function (data, parent) {
+  d3.heatmapDendro = function (data, parent, showRowTree) {
     if (!data || !data.matrix)
       return;
 
@@ -208,30 +208,32 @@
       })
       .on("mouseout", hideTooltip)
     ;
+    
+    if(showRowTree) {
+      //tree for rows
+      let rTree = svg.append("g").attr("class", "rtree")
+        .attr("transform", `translate (0, ${clusterSpace + colLabelHeight + 6})`);
+      let rlink = rTree.selectAll(".rlink")
+        .data(rowCluster.links(rowNodes))
+        .enter().append("path")
+        .attr("class", "rlink")
+        .on("mouseover", function (d) {
+          let tips = d.target.name;
+          if (!tips)
+            return '';
+          // showToolTip(this, tips);
+        })
+        // .on("mouseout", hideTooltip)
+        .attr("d", elbow);
 
-    //tree for rows
-    let rTree = svg.append("g").attr("class", "rtree")
-      .attr("transform", `translate (0, ${clusterSpace + colLabelHeight + 6})`);
-    let rlink = rTree.selectAll(".rlink")
-      .data(rowCluster.links(rowNodes))
-      .enter().append("path")
-      .attr("class", "rlink")
-      .on("mouseover", function (d) {
-        let tips = d.target.name;
-        if (!tips)
-          return '';
-        // showToolTip(this, tips);
-      })
-      // .on("mouseout", hideTooltip)
-      .attr("d", elbow);
-
-    let rnode = rTree.selectAll(".rnode")
-      .data(rowNodes)
-      .enter().append("g")
-      .attr("class", "rnode")
-      .attr("transform", function (d) {
-        return "translate(" + d.y + "," + d.x + ")";
-      });
+      let rnode = rTree.selectAll(".rnode")
+        .data(rowNodes)
+        .enter().append("g")
+        .attr("class", "rnode")
+        .attr("transform", function (d) {
+          return "translate(" + d.y + "," + d.x + ")";
+        });
+    }
 
     //tree for cols
     let cTree = svg.append("g").attr("class", "ctree")

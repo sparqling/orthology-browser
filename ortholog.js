@@ -7,6 +7,8 @@ const proteinPrefix = 'go-browser-protein-';
 
 let chart = null;
 
+let orderedByCellNum = false;
+
 let baseTaxon = {
   genome_taxid: "9606",
   up_id_url: "http://purl.uniprot.org/proteomes/UP000005640",
@@ -243,7 +245,7 @@ function UpdateChart() {
     // });
 
     
-
+    
     queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
       [taxonTree, humanNode] = constructTree(res.results);
       raiseNode(humanNode);
@@ -254,6 +256,32 @@ function UpdateChart() {
   }, "https://orth.dbcls.jp/sparql-proxy-oma");
 }
 
+function constructDummyTree(elemList) {
+  if(elemList.length === 0)
+    return {};
+  let rootLeaf = {
+    id: elemList[0].id,
+    name: elemList[0].name,
+    children: [],
+  }
+  let rootNode = {
+    children: [rootLeaf],
+  };
+  let currentNode = rootNode;
+  for(let elem of elemList.slice(1)) {
+    let newLeaf = {
+      id: elem.id,
+      name: elem.name,
+      children: [],
+    }
+    let newNode = {
+      children: [newLeaf],
+    }
+    currentNode.children.push(newNode);
+    currentNode = newNode;
+  }
+  return rootNode;
+}
 
 /// Construct tree from result of taxonomy_tree.rq
 function constructTree(result) {
@@ -322,13 +350,13 @@ function raiseNode(node) {
   }
 }
 
-function orderedNodes(tree) {
+function orderedLeaves(tree) {
   if(!tree.children || tree.children.length === 0)
     return [tree];
   else {
     let nodes = [];
     for(let child of tree.children) {
-      nodes = nodes.concat(orderedNodes(child));
+      nodes = nodes.concat(orderedLeaves(child));
     }
     return nodes;
   }
@@ -437,13 +465,17 @@ function renderChart() {
     });
   let dataForD3 = {};
 
-  dataForD3.rowJSON = taxonTree;
+  if(orderedByCellNum) {
+    dataForD3.rowJSON = constructDummyTree(series);
+  } else {
+    dataForD3.rowJSON = taxonTree;
+  }
   let cluster = hcluster().distance('euclidean').linkage('avg').posKey('val').data(columnVectors);
   dataForD3.colJSON = cluster.tree();
   matrix = [];
-  let orderedTaxons = orderedNodes(taxonTree);
+  let orderedTaxons = orderedLeaves(dataForD3.rowJSON);
   let orderedProteins = cluster.orderedNodes();
-
+  
   tooltips = {};
   orderedTaxons.forEach((tax, j) => {
     let row = [];
@@ -456,7 +488,7 @@ function renderChart() {
   });
   dataForD3.matrix = matrix;
   
-  d3.heatmapDendro(dataForD3, "#heatmap", 5000);
+  d3.heatmapDendro(dataForD3, "#heatmap", !orderedByCellNum);
   showDbpediaImage(comparedTaxa);
 }
 
@@ -466,6 +498,11 @@ $(() => {
   window.addEventListener('resize', (event) => {
     renderChart();
   }, true);
+  
+  $('#v-order-select').change((e) => {
+    orderedByCellNum = e.target.value === "cell";
+    UpdateChart();
+  });
   UpdateChart();
 });
 
