@@ -499,6 +499,7 @@ function renderChart() {
   
   d3.heatmapDendro(dataForD3, "#heatmap", !hOrderedByCellNum, !vOrderedByCellNum);
   showDbpediaImage(comparedTaxa);
+  showDbpediaImage([baseTaxon]);
 }
 
 
