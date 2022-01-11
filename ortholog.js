@@ -445,7 +445,6 @@ $(() => {
       queryBySpang(`sparql/goid_to_search_proteins.rq`,
         { values: proteinUPIds.map((id) => `(uniprot:${id})`).join(' ') },
         function (data) {
-          console.log(data.results.bindings);
           let bindings = data['results']['bindings'];
           for (let i = 0; i < bindings.length; i++) {
             let row = bindings[i];
@@ -467,8 +466,8 @@ $(() => {
               mapMnemonicToProteins[entry.mnemonic] = [];
             mapMnemonicToProteins[entry.mnemonic].push(entry);
           }
-          console.log(proteins);
           UpdateChart();
+          show_proteins(proteins);
         }
       );
       show_genomes([baseTaxon].concat(comparedTaxa));

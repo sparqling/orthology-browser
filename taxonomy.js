@@ -9,11 +9,14 @@ $(function() {
     // Selected item
     let codename = this_row.find('td:nth-child(3)').text();
 
-    if (localStorage.getItem(taxonPrefix + codename)) {
-      // Delete the item
-      localStorage.removeItem(taxonPrefix + codename);
-    } 
-    show_genomes(comparedTaxa);
+    const index = taxaUPIds.indexOf(codename);
+    if (index > -1) {
+      taxaUPIds.splice(index, 1);
+      localStorage.setObject('taxaUPIds', taxaUPIds);
+    }
+    comparedTaxa = comparedTaxa.filter((t) => t.up_id !== codename);
+
+    show_genomes([baseTaxon].concat(comparedTaxa));
     UpdateChart();
   });
 
@@ -26,14 +29,16 @@ $(function() {
       // Eech item
       let codename = each_row.find('td:nth-child(3)').text();
 
-      // Delete the item
-      if (localStorage.getItem(taxonPrefix + codename)) {
-        localStorage.removeItem(taxonPrefix + codename);
+      const index = taxaUPIds.indexOf(codename);
+      if (index > -1) {
+        taxaUPIds.splice(index, 1);
+        localStorage.setObject('taxaUPIds', taxaUPIds);
       }
+      comparedTaxa = comparedTaxa.filter((t) => t.up_id !== codename);
+      
     }
-
     UpdateChart();
-    show_genomes(comparedTaxa);
+    show_genomes([baseTaxon].concat(comparedTaxa));
   });
 });
 

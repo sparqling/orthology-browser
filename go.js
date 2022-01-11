@@ -12,10 +12,6 @@ function get_go_table_row(protein_record) {
   return list_html;
 }
 
-let initialProteinMap = {};
-
-$(show_selected_proteins);
-
 Storage.prototype.setObject = function(key, value) {
   this.setItem(key, JSON.stringify(value));
 }
@@ -25,16 +21,14 @@ $(function() {
     let this_row = $(this).closest('tr');
     // Selected item
     let codename = this_row.find('td:nth-child(2)').text();
-
-    if (localStorage.getItem(proteinPrefix + codename)) {
-      // Delete the item
-      localStorage.removeItem(proteinPrefix + codename);
-    } else {
-      // Add the item
-      localStorage.setObject(proteinPrefix + codename, initialProteinMap[codename]);
+    // Delete the item
+    const index = proteinUPIds.indexOf(codename);
+    if (index > -1) {
+      proteinUPIds.splice(index, 1);
+      localStorage.setObject('proteinUPIds', proteinUPIds);
     }
-
-    show_selected_proteins();
+    proteins = proteins.filter((p) => p.up_id !== codename);
+    show_proteins(proteins);
     UpdateChart();
   });
 
@@ -46,28 +40,21 @@ $(function() {
       let each_row = each_icon.closest('tr');
       // Eech item
       let codename = each_row.find('td:nth-child(2)').text();
-      console.log(codename);
-
-      if (selected) {
-        // Add the item
-        if (!localStorage.getItem(proteinPrefix + codename)) {
-          localStorage.setObject(proteinPrefix + codename, initialProteinMap[codename]);
-        }
-      } else {
-        // Delete the item
-        if (localStorage.getItem(proteinPrefix + codename)) {
-          localStorage.removeItem(proteinPrefix + codename);
-        }
+      // Delete the item
+      
+      const index = proteinUPIds.indexOf(codename);
+      if (index > -1) {
+        proteinUPIds.splice(index, 1);
+        localStorage.setObject('proteinUPIds', proteinUPIds);
       }
+      proteins = proteins.filter((p) => p.up_id !== codename);
     }
-
-    show_selected_proteins();
+    show_proteins(proteins);
     UpdateChart();
-
   });
 });
 
-function show_selected_proteins() {
+function show_proteins(proteins) {
 
   let total = 0;
   let html = '<thead><tr>' +
@@ -78,19 +65,8 @@ function show_selected_proteins() {
     '<th style="width: 9em;">Map</th>' +
     '</tr></thead>';
 
-  for (let i=0; i<localStorage.length; i++) {
-    let key = localStorage.key(i);
-    if (key.startsWith(proteinPrefix)) {
-      try {
-        let val = JSON.parse(localStorage.getItem(key));
-        initialProteinMap[key.slice(proteinPrefix.length)] = val;
-        html += '<tr>' + get_go_table_row(val) + '</tr>';
-        total++;
-      } catch(e) {
-        console.log(e);
-        localStorage.removeItem(key);
-      }
-    }
+  for(let protein of proteins) {
+    html += '<tr>' + get_go_table_row(protein) + '</tr>';
   }
   html += '';
 
