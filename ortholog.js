@@ -109,6 +109,12 @@ function UpdateChart() {
   for(let taxon of comparedTaxa) {
     mapNameToTaxa[taxon.displayedName] = taxon;
     mapTaxIdToTaxa[taxon.genome_taxid] = taxon;
+    if(taxon.organism_name.includes("(")) {
+      let matched = taxon.organism_name.match(/^[^\(]+\(([^\)]+)\)/);
+      if(matched)
+        taxon.displayedName = matched[1];
+    }
+    taxon.displayedName = taxon.displayedName || taxon.organism_name;
   }
 
 
@@ -454,12 +460,6 @@ $(() => {
           busco_missing,
           assembly
         };
-        if(entry.organism_name.includes("(")) {
-          let matched = entry.organism_name.match(/^[^\(]+\(([^\)]+)\)/);
-          if(matched)
-            entry.displayedName = matched[1];
-        }
-        entry.displayedName = entry.displayedName || entry.organism_name;
         selectedTaxa[entry.up_id] = entry;
       }
 
