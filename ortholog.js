@@ -30,8 +30,6 @@ taxaUPIds = localStorage.getObject('taxaUPIds');
 proteinUPIds = localStorage.getObject('proteinUPIds');
 
 
-
-
 let hOrderedByCellNum = false;
 let vOrderedByCellNum = false;
 
@@ -76,7 +74,6 @@ Storage.prototype.getObject = function (key) {
 
 function queryBySpang(queryUrl, param, callback, target_end = null) {
   $.get(queryUrl, (query) => {
-    console.log(spang.makeSparql(query, {}, param));
     spang.query(query, target_end ? target_end : endpoint, {
       param: param,
       format: 'json'
@@ -99,12 +96,10 @@ function queryBySpang(queryUrl, param, callback, target_end = null) {
 }
 
 function UpdateChart() {
-  proteins = [];
   tooltips = {};
   series = null;
 
   maxParalogNum = 0;
-  mapMnemonicToProteins = {};
   mapDisplayedNameToProtein = {};
 
   mapNameToTaxa[baseTaxon.displayedName] = baseTaxon;
@@ -112,17 +107,7 @@ function UpdateChart() {
   
   $('#heatmap').hide();
   $('#loader-container').show();
-  for (let i = 0; i < localStorage.length; i++) {
-    let key = localStorage.key(i);
-    if (key.startsWith(proteinPrefix)) {
-      let entry = localStorage.getObject(key);
-      proteins.push(entry);
-      if (!mapMnemonicToProteins[entry.mnemonic])
-        mapMnemonicToProteins[entry.mnemonic] = [];
-      mapMnemonicToProteins[entry.mnemonic].push(entry);
-    }
-  }
-
+  
   proteins.sort((protein1, protein2) => protein1.mnemonic < protein2.mnemonic ? -1 : 1);
   
   if(proteins.length === 0 || comparedTaxa.length === 0) {
@@ -455,9 +440,38 @@ $(() => {
         mapNameToTaxa[entry.displayedName] = entry;
         mapTaxIdToTaxa[genome_taxid] = entry;
         comparedTaxa.push(entry);
-        UpdateChart();
-        show_genomes([baseTaxon].concat(comparedTaxa));
       }
+
+      queryBySpang(`sparql/goid_to_search_proteins.rq`,
+        { values: proteinUPIds.map((id) => `(uniprot:${id})`).join(' ') },
+        function (data) {
+          console.log(data.results.bindings);
+          let bindings = data['results']['bindings'];
+          for (let i = 0; i < bindings.length; i++) {
+            let row = bindings[i];
+            row['protein']['value'].match(/(\d+)$/);
+            const up_id_url = row['protein']['value'];
+            const up_id = row['protein']['value'].replace(/.*\//, '');
+            const mnemonic = row['mnemonic']['value'];
+            const full_name = row['full_name']['value'];
+            const map = row['map']['value'];
+            let entry = {
+              up_id_url,
+              up_id,
+              mnemonic,
+              full_name,
+              map
+            };
+            proteins.push(entry);
+            if (!mapMnemonicToProteins[entry.mnemonic])
+              mapMnemonicToProteins[entry.mnemonic] = [];
+            mapMnemonicToProteins[entry.mnemonic].push(entry);
+          }
+          console.log(proteins);
+          UpdateChart();
+        }
+      );
+      show_genomes([baseTaxon].concat(comparedTaxa));
     });
 });
 
