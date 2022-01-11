@@ -1,8 +1,4 @@
 
-let initialGenomeMap = {};
-
-window.onload = show_selected_genomes;
-
 Storage.prototype.setObject = function(key, value) {
   this.setItem(key, JSON.stringify(value));
 }
@@ -16,11 +12,8 @@ $(function() {
     if (localStorage.getItem(taxonPrefix + codename)) {
       // Delete the item
       localStorage.removeItem(taxonPrefix + codename);
-    } else {
-      // Add the item
-      localStorage.setObject(taxonPrefix + codename, initialGenomeMap[codename]);
-    }
-    show_selected_genomes();
+    } 
+    show_genomes(comparedTaxa);
     UpdateChart();
   });
 
@@ -33,21 +26,14 @@ $(function() {
       // Eech item
       let codename = each_row.find('td:nth-child(3)').text();
 
-      if (selected) {
-        // Add the item
-        if (!localStorage.getItem(taxonPrefix + codename)) {
-          localStorage.setObject(taxonPrefix + codename, initialGenomeMap[codename]);
-        }
-      } else {
-        // Delete the item
-        if (localStorage.getItem(taxonPrefix + codename)) {
-          localStorage.removeItem(taxonPrefix + codename);
-        }
+      // Delete the item
+      if (localStorage.getItem(taxonPrefix + codename)) {
+        localStorage.removeItem(taxonPrefix + codename);
       }
     }
 
     UpdateChart();
-    show_selected_genomes();
+    show_genomes(comparedTaxa);
   });
 });
 
@@ -56,8 +42,6 @@ function get_taxon_table_row(genome_record) {
   if (genome_record.assembly) {
     assembly_url = 'https://ncbi.nlm.nih.gov/assembly/' + genome_record.assembly;
   }
-  let checkedAttr = localStorage.getItem(taxonPrefix + genome_record.up_id) ? "checked" : "";
-
   let scientific_name = genome_record.organism_name;
   let common_name = '';
   if (scientific_name.match(/(.*)?(\(.*)/)) {
@@ -67,7 +51,7 @@ function get_taxon_table_row(genome_record) {
   let name = `<i>${scientific_name}</i> ${common_name}`;
 
   let list_html = '<tr>';
-  list_html += `<td align="center"><input type="checkbox" class="add_genome" ${checkedAttr} title="Select"></td>`;
+  list_html += `<td align="center"><input type="checkbox" class="add_genome" checked title="Select"></td>`;
   if (genome_record.types.match(/Reference_Proteome/)) {
     list_html += '<td align="center"> &#9675 </td>';
   } else {
@@ -96,7 +80,7 @@ function get_taxon_table_row(genome_record) {
 }
 
 
-function show_selected_genomes() {
+function show_genomes(genomes) {
   let total = 0;
   let html = '<thead><tr>' +
     '<th align="center"><input type="checkbox" class="add_genome_all" checked title="Select all"></th>' +
@@ -116,14 +100,9 @@ function show_selected_genomes() {
     '<th class="thin">miss.</th>' +
     '</tr></thead>';
 
-  for (let i=0; i<localStorage.length; i++) {
-    let key = localStorage.key(i);
-    if (key.startsWith(taxonPrefix)) {
-      let val = JSON.parse(localStorage.getItem(key));
-      initialGenomeMap[key] = val;
-      html += '<tr>' + get_taxon_table_row(val) + '</tr>';
-      total++;
-    }
+  
+  for(let genome of genomes) {
+    html += '<tr>' + get_taxon_table_row(genome) + '</tr>';
   }
   html += '';
 

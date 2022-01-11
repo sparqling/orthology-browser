@@ -4,8 +4,33 @@ const dbpediaEndpoint = 'https://dbpedia.org/sparql';
 const taxonPrefix = "taxonomy-browser-proteome-";
 const proteinPrefix = 'go-browser-protein-';
 
+let comparedTaxa = [];
 
-let chart = null;
+Storage.prototype.setObject = function(key, value) {
+  this.setItem(key, JSON.stringify(value));
+}
+
+
+Storage.prototype.getObject = function(key) {
+  return JSON.parse(this.getItem(key));
+}
+
+const urlParams = new URLSearchParams(window.location.search);
+let taxaUPIds = urlParams.getAll('taxaUPIds');
+let proteinUPIds = urlParams.getAll('proteinUPIds');
+if(urlParams.has('taxaUPIds') && urlParams.has('proteinUPIds')) {
+  taxaUPIds = urlParams.getAll('taxaUPIds');
+  proteinUPIds = urlParams.getAll('proteinUPIds');
+  localStorage.setObject('taxaUPIds', taxaUPIds);
+  localStorage.setObject('proteinUPIds', proteinUPIds);
+  window.location.href = window.location.href.split('?')[0]; // Jump to URL without query parameter
+}
+
+taxaUPIds = localStorage.getObject('taxaUPIds');
+proteinUPIds = localStorage.getObject('proteinUPIds');
+
+
+
 
 let hOrderedByCellNum = false;
 let vOrderedByCellNum = false;
@@ -27,7 +52,6 @@ let baseTaxon = {
   busco_missing: "17",
   assembly: "GCA_000001405.27"
 };
-let comparedTaxa = [];
 let proteins = [];
 let tooltips = {};
 let tooltipMap = {};
@@ -52,6 +76,7 @@ Storage.prototype.getObject = function (key) {
 
 function queryBySpang(queryUrl, param, callback, target_end = null) {
   $.get(queryUrl, (query) => {
+    console.log(spang.makeSparql(query, {}, param));
     spang.query(query, target_end ? target_end : endpoint, {
       param: param,
       format: 'json'
@@ -74,14 +99,11 @@ function queryBySpang(queryUrl, param, callback, target_end = null) {
 }
 
 function UpdateChart() {
-  comparedTaxa = [];
   proteins = [];
   tooltips = {};
   series = null;
 
   maxParalogNum = 0;
-  mapNameToTaxa = {};
-  mapTaxIdToTaxa = {};
   mapMnemonicToProteins = {};
   mapDisplayedNameToProtein = {};
 
@@ -92,21 +114,7 @@ function UpdateChart() {
   $('#loader-container').show();
   for (let i = 0; i < localStorage.length; i++) {
     let key = localStorage.key(i);
-    if (key.startsWith(taxonPrefix)) {
-      let taxonId = localStorage.getObject(key)?.genome_taxid;
-      if (taxonId && taxonId !== baseTaxon.genome_taxid) {
-        let entry = localStorage.getObject(key);
-        if(entry.organism_name.includes("(")) {
-          let matched = entry.organism_name.match(/^[^\(]+\(([^\)]+)\)/);
-          if(matched)
-            entry.displayedName = matched[1];
-        }
-        entry.displayedName = entry.displayedName || entry.organism_name;
-        comparedTaxa.push(entry);
-        mapNameToTaxa[entry.displayedName] = entry;
-        mapTaxIdToTaxa[taxonId] = entry;
-      }
-    } else if (key.startsWith(proteinPrefix)) {
+    if (key.startsWith(proteinPrefix)) {
       let entry = localStorage.getObject(key);
       proteins.push(entry);
       if (!mapMnemonicToProteins[entry.mnemonic])
@@ -399,7 +407,58 @@ $(() => {
     localStorage.setItem('v-order', e.target.value);
     UpdateChart();
   });
-  UpdateChart();
+
+  queryBySpang(`sparql/search_genomes_for_values.rq`,
+    { values: taxaUPIds.map((id) => `(proteome:${id})`).join(' ') },
+    function (data) {
+      let data_p = data['results']['bindings'];
+      for (let i = 0; i < data_p.length; i++) {
+        let row = data_p[i];
+        row['taxid']['value'].match(/(\d+)$/);
+        const genome_taxid = RegExp.$1;
+        const up_id_url = row['proteome']['value'];
+        const up_id = row['proteome']['value'].replace(/.*\//, '');
+        const types = row['types']['value'];
+        const organism_name = row['organism']['value'];
+        const n_genes = parseInt(row['proteins']['value']);
+        const n_isoforms = parseInt(row['isoforms']['value']);
+        const cpd_label = row['cpd_label']['value'];
+        const busco_complete = row['busco_complete'] ? row['busco_complete']['value'] : '';
+        const busco_single = row['busco_single'] ? row['busco_single']['value'] : '';
+        const busco_multi = row['busco_multi'] ? row['busco_multi']['value'] : '';
+        const busco_fragmented = row['busco_fragmented'] ? row['busco_fragmented']['value'] : '';
+        const busco_missing = row['busco_missing'] ? row['busco_missing']['value'] : '';
+        const assembly = row['assembly'] ? row['assembly']['value'] : '';
+        let entry = {
+          genome_taxid,
+          up_id_url,
+          up_id,
+          types,
+          organism_name,
+          n_genes,
+          n_isoforms,
+          cpd_label,
+          busco_complete,
+          busco_single,
+          busco_multi,
+          busco_fragmented,
+          busco_missing,
+          assembly
+        };
+        if(entry.organism_name.includes("(")) {
+          let matched = entry.organism_name.match(/^[^\(]+\(([^\)]+)\)/);
+          if(matched)
+            entry.displayedName = matched[1];
+        }
+        entry.displayedName = entry.displayedName || entry.organism_name;
+        // comparedTaxa.push(entry);
+        mapNameToTaxa[entry.displayedName] = entry;
+        mapTaxIdToTaxa[genome_taxid] = entry;
+        comparedTaxa.push(entry);
+        UpdateChart();
+        show_genomes([baseTaxon].concat(comparedTaxa));
+      }
+    });
 });
 
 

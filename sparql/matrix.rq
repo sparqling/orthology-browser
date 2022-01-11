@@ -22,4 +22,3 @@ WHERE {
   VALUES ?taxid { {{taxa}} }
 }
 ORDER BY ?uniprot_human ?taxid
-    
