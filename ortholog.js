@@ -1,33 +1,37 @@
 const endpoint = 'https://orth.dbcls.jp/sparql-proxy';
 const dbpediaEndpoint = 'https://dbpedia.org/sparql';
 
-const taxonPrefix = "taxonomy-browser-proteome-";
-const proteinPrefix = 'go-browser-protein-';
-
 let comparedTaxa = [];
 
 Storage.prototype.setObject = function(key, value) {
   this.setItem(key, JSON.stringify(value));
 }
 
-
 Storage.prototype.getObject = function(key) {
   return JSON.parse(this.getItem(key));
 }
 
 const urlParams = new URLSearchParams(window.location.search);
-let taxaUPIds = urlParams.getAll('taxaUPIds');
-let proteinUPIds = urlParams.getAll('proteinUPIds');
+let selectedTaxa;
+let selectedProteins;
 if(urlParams.has('taxaUPIds') && urlParams.has('proteinUPIds')) {
-  taxaUPIds = urlParams.getAll('taxaUPIds');
-  proteinUPIds = urlParams.getAll('proteinUPIds');
-  localStorage.setObject('taxaUPIds', taxaUPIds);
-  localStorage.setObject('proteinUPIds', proteinUPIds);
+  let taxaParam = urlParams.getAll('taxaUPIds');
+  let proteinsParam = urlParams.getAll('proteinUPIds');
+  selectedTaxa = {};
+  for(let taxonUPId of taxaParam) {
+    selectedTaxa[taxonUPId] = null;
+  }
+  selectedProteins = {};
+  for(let proteinUPId of proteinsParam) {
+    selectedProteins[proteinUPId] = null;
+  }
+  localStorage.setObject('selectedTaxa', selectedTaxa);
+  localStorage.setObject('selectedProteins', selectedProteins);
   window.location.href = window.location.href.split('?')[0]; // Jump to URL without query parameter
 }
 
-taxaUPIds = localStorage.getObject('taxaUPIds');
-proteinUPIds = localStorage.getObject('proteinUPIds');
+selectedTaxa = localStorage.getObject('selectedTaxa') || {};
+selectedProteins = localStorage.getObject('selectedProteins') || {};
 
 
 let hOrderedByCellNum = false;
@@ -99,6 +103,24 @@ function UpdateChart() {
   tooltips = {};
   series = null;
 
+  mapNameToTaxa = {};
+  mapTaxIdToTaxa = {};
+  comparedTaxa = Object.values(selectedTaxa);
+  for(let taxon of comparedTaxa) {
+    mapNameToTaxa[taxon.displayedName] = taxon;
+    mapTaxIdToTaxa[taxon.genome_taxid] = taxon;
+  }
+
+
+  proteins = Object.values(selectedProteins);
+
+  mapMnemonicToProteins = {};
+  for(let protein of proteins) {
+    if (!mapMnemonicToProteins[protein.mnemonic])
+      mapMnemonicToProteins[protein.mnemonic] = [];
+    mapMnemonicToProteins[protein.mnemonic].push(protein);
+  }
+
   maxParalogNum = 0;
   mapDisplayedNameToProtein = {};
 
@@ -129,8 +151,7 @@ function UpdateChart() {
       }
     }
   }
-
-
+  
   function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
   }
@@ -205,6 +226,8 @@ function UpdateChart() {
       // taxonTree = simplifyTree(taxonTree);
       
       renderChart();
+      show_proteins();
+      show_genomes();
     },  endpoint);
   }, "https://orth.dbcls.jp/sparql-proxy-oma");
 }
@@ -393,8 +416,9 @@ $(() => {
     UpdateChart();
   });
 
+  // TODO: No query is needed if all taxa and proteins are cached
   queryBySpang(`sparql/search_genomes_for_values.rq`,
-    { values: taxaUPIds.map((id) => `(proteome:${id})`).join(' ') },
+    { values: Object.keys(selectedTaxa).filter(up_id => selectedTaxa[up_id] === null).map((id) => `(proteome:${id})`).join(' ') },
     function (data) {
       let data_p = data['results']['bindings'];
       for (let i = 0; i < data_p.length; i++) {
@@ -436,14 +460,11 @@ $(() => {
             entry.displayedName = matched[1];
         }
         entry.displayedName = entry.displayedName || entry.organism_name;
-        // comparedTaxa.push(entry);
-        mapNameToTaxa[entry.displayedName] = entry;
-        mapTaxIdToTaxa[genome_taxid] = entry;
-        comparedTaxa.push(entry);
+        selectedTaxa[entry.up_id] = entry;
       }
 
       queryBySpang(`sparql/goid_to_search_proteins.rq`,
-        { values: proteinUPIds.map((id) => `(uniprot:${id})`).join(' ') },
+        { values: Object.keys(selectedProteins).filter(up_id => selectedProteins[up_id] === null).map((id) => `(uniprot:${id})`).join(' ') },
         function (data) {
           let bindings = data['results']['bindings'];
           for (let i = 0; i < bindings.length; i++) {
@@ -461,16 +482,11 @@ $(() => {
               full_name,
               map
             };
-            proteins.push(entry);
-            if (!mapMnemonicToProteins[entry.mnemonic])
-              mapMnemonicToProteins[entry.mnemonic] = [];
-            mapMnemonicToProteins[entry.mnemonic].push(entry);
+            selectedProteins[up_id] = entry;
           }
           UpdateChart();
-          show_proteins(proteins);
         }
       );
-      show_genomes([baseTaxon].concat(comparedTaxa));
     });
 });
 

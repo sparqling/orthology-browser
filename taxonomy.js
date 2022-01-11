@@ -9,14 +9,9 @@ $(function() {
     // Selected item
     let codename = this_row.find('td:nth-child(3)').text();
 
-    const index = taxaUPIds.indexOf(codename);
-    if (index > -1) {
-      taxaUPIds.splice(index, 1);
-      localStorage.setObject('taxaUPIds', taxaUPIds);
-    }
-    comparedTaxa = comparedTaxa.filter((t) => t.up_id !== codename);
-
-    show_genomes([baseTaxon].concat(comparedTaxa));
+    delete selectedTaxa[codename];
+    localStorage.setObject('selectedTaxa', selectedTaxa);
+    
     UpdateChart();
   });
 
@@ -29,16 +24,10 @@ $(function() {
       // Eech item
       let codename = each_row.find('td:nth-child(3)').text();
 
-      const index = taxaUPIds.indexOf(codename);
-      if (index > -1) {
-        taxaUPIds.splice(index, 1);
-        localStorage.setObject('taxaUPIds', taxaUPIds);
-      }
-      comparedTaxa = comparedTaxa.filter((t) => t.up_id !== codename);
-      
+      delete selectedTaxa[codename];
     }
+    localStorage.setObject('selectedTaxa', selectedTaxa);
     UpdateChart();
-    show_genomes([baseTaxon].concat(comparedTaxa));
   });
 });
 
@@ -85,7 +74,8 @@ function get_taxon_table_row(genome_record) {
 }
 
 
-function show_genomes(genomes) {
+function show_genomes() {
+  let genomes = [baseTaxon].concat(comparedTaxa);
   let total = 0;
   let html = '<thead><tr>' +
     '<th align="center"><input type="checkbox" class="add_genome_all" checked title="Select all"></th>' +
@@ -112,7 +102,7 @@ function show_genomes(genomes) {
   html += '';
 
   $('#selected-proteomes').html(html)
-  $("#proteome-counter").html('<font size="2"><br>You selected <b>' + total + '</b> proteomes (from <a target="_blank" href="/taxonomy-browser/">Taxonomy Browser</a>)<br><br></font>');
+  $("#proteome-counter").html('<font size="2"><br>You selected <b>' + genomes.length + '</b> proteomes (from <a target="_blank" href="/taxonomy-browser/">Taxonomy Browser</a>)<br><br></font>');
 
   for (let i = 0; i < $('.add_genome').length; i++) {
     let each_checkbox = $('.add_genome').eq(i);

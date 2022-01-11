@@ -1,7 +1,6 @@
 function get_go_table_row(protein_record) {
-  let checkedAttr = localStorage.getItem(proteinPrefix + protein_record.up_id) ? "checked" : "";
   let list_html = '<tr>';/**/
-  list_html += `<td align="center"><input type="checkbox" class="add_protein" ${checkedAttr} title="Select"></td>`;
+  list_html += `<td align="center"><input type="checkbox" class="add_protein" checked title="Select"></td>`;
   list_html += `<td class="protein-id-td"><a href="${protein_record.up_id_url}" target="_blank">${protein_record.up_id}</a></td>`;
 
   for(let c of  ['mnemonic', 'full_name', 'map']) {
@@ -21,14 +20,9 @@ $(function() {
     let this_row = $(this).closest('tr');
     // Selected item
     let codename = this_row.find('td:nth-child(2)').text();
-    // Delete the item
-    const index = proteinUPIds.indexOf(codename);
-    if (index > -1) {
-      proteinUPIds.splice(index, 1);
-      localStorage.setObject('proteinUPIds', proteinUPIds);
-    }
-    proteins = proteins.filter((p) => p.up_id !== codename);
-    show_proteins(proteins);
+    
+    delete selectedProteins[codename];
+    localStorage.setObject('selectedProteins', selectedProteins);
     UpdateChart();
   });
 
@@ -41,21 +35,14 @@ $(function() {
       // Eech item
       let codename = each_row.find('td:nth-child(2)').text();
       // Delete the item
-      
-      const index = proteinUPIds.indexOf(codename);
-      if (index > -1) {
-        proteinUPIds.splice(index, 1);
-        localStorage.setObject('proteinUPIds', proteinUPIds);
-      }
-      proteins = proteins.filter((p) => p.up_id !== codename);
+      delete selectedProteins[codename];
     }
-    show_proteins(proteins);
+    localStorage.setObject('selectedProteins', selectedProteins);
     UpdateChart();
   });
 });
 
-function show_proteins(proteins) {
-
+function show_proteins() {
   let total = 0;
   let html = '<thead><tr>' +
     '<th style="width: 1.5em;"align="center"><input type="checkbox" checked class="add_protein_all" title="Select all"></th>' +
@@ -71,7 +58,7 @@ function show_proteins(proteins) {
   html += '';
 
   $('#selected-proteins').html(html)
-  $("#protein-counter").html('<font size="2"><br>You selected <b>' + total + '</b> proteins (from <a target="_blank" href="/go-browser/">GO browser</a>)<br><br></font>');
+  $("#protein-counter").html('<font size="2"><br>You selected <b>' + proteins.length + '</b> proteins (from <a target="_blank" href="/go-browser/">GO browser</a>)<br><br></font>');
 
   for (let i = 0; i < $('.add_protein').length; i++) {
     let each_checkbox = $('.add_protein').eq(i);
