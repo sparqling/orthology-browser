@@ -5,13 +5,9 @@ Storage.prototype.setObject = function(key, value) {
 
 $(function() {
   $(document).on('click', '.add_genome', function() {
-    let this_row = $(this).closest('tr');
-    // Selected item
-    let codename = this_row.find('td:nth-child(3)').text();
-
+    let codename = $(this).data('codename');
     delete selectedTaxa[codename];
     localStorage.setObject('selectedTaxa', selectedTaxa);
-    
     UpdateChart();
   });
 
@@ -19,11 +15,7 @@ $(function() {
     // Swith the icon
     let selected = $(this).prop('checked');
     for (let i=0; i<$('.add_genome').length; i++) {
-      let each_icon = $('.add_genome').eq(i);
-      let each_row = each_icon.closest('tr');
-      // Eech item
-      let codename = each_row.find('td:nth-child(3)').text();
-
+      let codename = $('.add_genome').eq(i).data('codename');
       delete selectedTaxa[codename];
     }
     localStorage.setObject('selectedTaxa', selectedTaxa);
@@ -45,7 +37,7 @@ function get_taxon_table_row(genome_record) {
   let name = `<i>${scientific_name}</i> ${common_name}`;
 
   let list_html = '<tr>';
-  list_html += `<td align="center"><input type="checkbox" class="add_genome" checked title="Select"></td>`;
+  list_html += `<td align="center"><input type="checkbox" class="add_genome" data-codename="${genome_record.up_id}" checked title="Select"></td>`;
   if (genome_record.types.match(/Reference_Proteome/)) {
     list_html += '<td align="center"> &#9675 </td>';
   } else {
@@ -105,6 +97,7 @@ function show_genomes() {
 
   $('#selected-proteomes').html(html)
   $("#proteome-counter").html('<font size="2"><br>You selected <b>' + genomes.length + '</b> proteomes (from <a target="_blank" href="/taxonomy-browser/">Taxonomy Browser</a>)<br><br></font>');
+  $("#selected-proteome-label").html(`<b>${genomes.length}</b> proteomes`);
 
   for (let i = 0; i < $('.add_genome').length; i++) {
     let each_checkbox = $('.add_genome').eq(i);

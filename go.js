@@ -59,6 +59,8 @@ function show_proteins() {
 
   $('#selected-proteins').html(html)
   $("#protein-counter").html('<font size="2"><br>You selected <b>' + proteins.length + '</b> proteins (from <a target="_blank" href="/go-browser/">GO browser</a>)<br><br></font>');
+  $("#selected-protein-label").html(`<b>${proteins.length}</b> proteins`);
+
 
   for (let i = 0; i < $('.add_protein').length; i++) {
     let each_checkbox = $('.add_protein').eq(i);

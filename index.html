@@ -2,7 +2,8 @@
 <head>
   <meta charset="utf-8">
   <title>Orthology Browser</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <link rel="stylesheet" href="css/style.css" type="text/css" media="print, projection, screen" />
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -87,49 +88,86 @@
 <body>
 
 
-<div id="d3tooltip">
-  <p><span id="value"></p>
+<nav class='navbar navbar-expand-md navbar-dark bg-primary' id='header'>
+  <div class="container-fluid">
+    <div class="navbar-brand">
+      Orthology Browser
+    </div>
+    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="#">Taxonomy Browser</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">GO Browser</a>
+      </li>
+    </ul>
+
+    <span class="text-white mx-3">
+      You selected:
+    </span>
+    <span class="text-white mx-3">
+      <label id="selected-proteome-label">
+      </label>
+      <br>
+      <label id="selected-protein-label">
+      </label>
+    </span>
+    <a href="/" target="_blank" class="btn">Check List</a>
+  </div>
+</nav>
+
+<div id="main-area" class="my-2 mx-3">
+  
+  
+  <div id="d3tooltip">
+    <p><span id="value"></p>
+  </div>
+
+
+
+  <label for="database-select">Source Database: </label>
+  <select style="margin-left: 10px;" id="database-select">
+    <option>OMA</option>
+    <option>Ortho DB</option>
+    <option>Meta Prediction</option>
+  </select>
+  <label for="h-order-select" style="margin-left: 2.5em">Horizontal Order: </label>
+  <select style="margin-left: 10px;" id="h-order-select">
+    <option value="tree">Cluster by similarity (tree)</option>
+    <option value="cell">Number of cells</option>
+  </select>
+  <label for="v-order-select" style="margin-left: 2.5em">Vertical Order: </label>
+  <select style="margin-left: 10px;" id="v-order-select">
+    <option value="tree">Taxon tree</option>
+    <option value="cell">Number of cells</option>
+  </select>
+  <button type="button" class="btn" style="margin-left: 100px; display: inline; width: 80px; height: 25px" id="share-btn">Share</button>
+  <br>
+  <br>
+
+  <div id="loader-container" style="width: 100%; height: 500px; text-align: center;">
+    <img id="loading-image" src="./loader.gif" alt="Loading..." />
+  </div>
+  <div id="heatmap" style="width: 100%; height: 500px; text-align: center;">
+  </div>
+
+
+  <div class="ui-widget my-3">
+    <!-- List of genomes -->
+    <div id="proteome-counter"></div>
+    <table border="0" id="selected-proteomes" class="tablesorter"></table>
+  </div>
+
+  <div class="ui-widget my-3">
+    <!-- List of genomes -->
+    <div id="protein-counter"></div>
+    <table border="0" id="selected-proteins" class="tablesorter"></table>
+  </div>
+  <hr>
+
+  
 </div>
 
-<label for="database-select">Source Database: </label>
-<select style="margin-left: 10px;" id="database-select">
-  <option>OMA</option>
-  <option>Ortho DB</option>
-  <option>Meta Prediction</option>
-</select>
-<label for="h-order-select" style="margin-left: 2.5em">Horizontal Order: </label>
-<select style="margin-left: 10px;" id="h-order-select">
-  <option value="tree">Cluster by similarity (tree)</option>
-  <option value="cell">Number of cells</option>
-</select>
-<label for="v-order-select" style="margin-left: 2.5em">Vertical Order: </label>
-<select style="margin-left: 10px;" id="v-order-select">
-  <option value="tree">Taxon tree</option>
-  <option value="cell">Number of cells</option>
-</select>
-<button type="button" class="btn" style="margin-left: 100px; display: inline; width: 80px; height: 25px" id="share-btn">Share</button>
-<br>
-<br>
-
-<div id="loader-container" style="width: 100%; height: 200px; text-align: center;">
-  <img id="loading-image" src="./loader.gif" alt="Loading..." />
-</div>
-<div id="heatmap" style="width: 100%; height: 500px; text-align: center;">
-</div>
-
-
-
-<div class="ui-widget">
-  <!-- List of genomes -->
-  <div id="proteome-counter"></div>
-  <table border="0" id="selected-proteomes" class="tablesorter"></table>
-</div>
-
-<div class="ui-widget">
-  <!-- List of genomes -->
-  <div id="protein-counter"></div>
-  <table border="0" id="selected-proteins" class="tablesorter"></table>
-</div>
 
 </body>
 </html>

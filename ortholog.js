@@ -152,7 +152,7 @@ function UpdateChart() {
   if(proteins.length === 0 || comparedTaxa.length === 0) {
     $('#loader-container').hide();
     $('#heatmap').show();
-    $('#heatmap')[0].innerText = "No candidates selected";
+    $('#heatmap')[0].innerText = "Select more than one proteomes and proteins to see orthologs.";
     return;
   }
 
