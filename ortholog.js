@@ -551,15 +551,27 @@ function showDbpediaImage(taxa) {
   taxa.forEach((taxon) => {
     if(mapTaxIdToThumbnail[taxon.genome_taxid]) {
       document.getElementById(`row-image-${taxon.displayedName}`).setAttribute('href', mapTaxIdToThumbnail[taxon.genome_taxid]);
+      document.getElementById(`image-${taxon.displayedName}`).setAttribute('src', mapTaxIdToThumbnail[taxon.genome_taxid]);
     } else {
       queryBySpang(`sparql/dbpedia_thumbnails.rq`, {
           taxon: dbpedia_uri(taxon.organism_name),
         }, (res) => {
           let thumbnailUri = res.results.bindings[0]?.image.value;
           document.getElementById(`row-image-${taxon.displayedName}`).setAttribute('href', thumbnailUri);
+          document.getElementById(`image-${taxon.displayedName}`).setAttribute('src', thumbnailUri);
           mapTaxIdToThumbnail[taxon.genome_taxid] = thumbnailUri;  
         }, dbpediaEndpoint
       )
     }
   })
 }
+
+$(document).on('mouseover', '.table-image', (e) => {
+  let rect = e.target.getBoundingClientRect();
+  showTooltipImage(rect.right, rect.bottom, $(e.target).data('title'), e.target.getAttribute('src'))
+});
+
+
+$(document).on('mouseout', '.table-image', (e) => {
+  hideTooltip(e.target);
+});

@@ -2,6 +2,28 @@
  * Mayya Sedova <msedova.dev@gmail.com>
  */
 
+
+function hideTooltip(target) {
+  d3.select(target).classed("cell-hover", false);
+  d3.selectAll(".rowLabel").classed("text-highlight", false);
+  d3.selectAll(".colLabel").classed("text-highlight", false);
+  d3.select("#d3tooltip").transition()
+    .duration(200)
+    .style("opacity", 0);
+}
+
+function showTooltipImage(x, y, label, src) {
+  d3.select("#d3tooltip")
+    .style("left", (x + 10) + "px")
+    .style("top", (y - 10) + "px")
+    .select("#value")
+    .html(`${label}<br><img width="300" height="auto" src="${src}">`);
+  // //Show the tooltip
+  d3.select("#d3tooltip").transition()
+    .duration(200)
+    .style("opacity", .9);
+}
+
 (function () {
   function showToolTip(target, tip) {
     d3.select(target).classed("cell-hover", true);
@@ -25,15 +47,6 @@
     }
   }
   
-  function hideTooltip() {
-    d3.select(this).classed("cell-hover", false);
-    d3.selectAll(".rowLabel").classed("text-highlight", false);
-    d3.selectAll(".colLabel").classed("text-highlight", false);
-    d3.select("#d3tooltip").transition()
-      .duration(200)
-      .style("opacity", 0);
-  }
-
   d3.heatmapDendro = function (data, parent, showColTree, showRowTree) {
     if (!data || !data.matrix)
       return;
@@ -112,7 +125,7 @@
         tip += "</ui>";
         showToolTip(this, tip);
       })
-      .on("mouseout", hideTooltip)
+      .on("mouseout", function(){ hideTooltip(this) })
       .attr("class", function (d, i) {
         return "rowLabel mono r" + i;
       });
@@ -130,21 +143,13 @@
       .attr("class", "taxon-image")
       .attr('id', (d) => `row-image-${d}`)
       .attr("height", cellHeight)
-      .on('mouseover',  function(d) {
+      .on('mouseover',  function(d, e) {
           if(this.href.animVal !== 'undefined') {
             //Update the tooltip position and value
-            d3.select("#d3tooltip")
-              .style("left", (d3.event.pageX + 10) + "px")
-              .style("top", (d3.event.pageY - 10) + "px")
-              .select("#value")
-              .html(`${d}<br><img width="300" height="auto" src="${this.href.animVal}">`);
-            // //Show the tooltip
-            d3.select("#d3tooltip").transition()
-              .duration(200)
-              .style("opacity", .9);
+            showTooltipImage(d3.event.pageX, d3.event.pageY, d, this.href.animVal);
           }
        })
-      .on("mouseout", hideTooltip);
+      .on("mouseout", function(){ hideTooltip(this) });
 
 
     let colLabels = svg.append("g")
@@ -170,7 +175,7 @@
         tip += "</ui>";
         showToolTip(this, tip);
       })
-      .on("mouseout", hideTooltip)
+      .on("mouseout", function(){ hideTooltip(this); })
       .attr("class", function (d, i) {
         return "colLabel mono c" + i;
       });
@@ -208,7 +213,7 @@
           return '';
         showToolTip(this, tips);
       })
-      .on("mouseout", hideTooltip)
+      .on("mouseout", function(){ hideTooltip(this); })
     ;
     
     if(showRowTree) {
@@ -225,7 +230,7 @@
             return '';
           // showToolTip(this, tips);
         })
-        // .on("mouseout", hideTooltip)
+        // .on("mouseout", function(){ hideTooltip(this); })
         .attr("d", elbow);
 
       let rnode = rTree.selectAll(".rnode")

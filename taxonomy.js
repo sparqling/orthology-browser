@@ -56,6 +56,7 @@ function get_taxon_table_row(genome_record) {
   // } else {
   //   list_html += '<td> </td>';
   // }
+  list_html += `<td style="text-align: center;"><img class="table-image" style="height: 25px;" id="image-${genome_record.displayedName}" data-title="${genome_record.displayedName}"></td>`;
   list_html += `<td class="proteome-id-td"><a href="${genome_record.up_id_url}" target="_blank">${genome_record.up_id}</a></td>`;
   list_html += `<td><a href="${assembly_url}" target="_blank">${genome_record.assembly}</a></td>`;
   list_html += '<td>' + genome_record.genome_taxid + '</td>';
@@ -80,6 +81,7 @@ function show_genomes() {
   let html = '<thead><tr>' +
     '<th align="center"><input type="checkbox" class="add_genome_all" checked title="Select all"></th>' +
     '<th>Ref</th>' +
+    '<th>Image</th>' +
     // '<th>Rep</th>' +
     '<th>Proteome ID</th>' +
     '<th>Genome ID</th>' +
