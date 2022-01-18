@@ -14,9 +14,17 @@ Storage.prototype.getObject = function(key) {
 const urlParams = new URLSearchParams(window.location.search);
 let selectedTaxa;
 let selectedProteins;
-if(urlParams.has('taxaUPIds') && urlParams.has('proteinUPIds')) {
-  let taxaParam = urlParams.getAll('taxaUPIds');
-  let proteinsParam = urlParams.getAll('proteinUPIds');
+let taxaParam = [];
+let proteinsParam = [];
+for(let entry of urlParams.entries()) {
+  if(entry[0].startsWith('taxaUPIds')) {
+    taxaParam.push(entry[1]); 
+  } else if(entry[0].startsWith('proteinUPIds')) {
+    proteinsParam.push(entry[1]);
+  }
+}
+
+if(taxaParam.length > 0 && proteinsParam.length > 0) {
   selectedTaxa = {};
   for(let taxonUPId of taxaParam) {
     selectedTaxa[taxonUPId] = null;
@@ -137,6 +145,9 @@ function UpdateChart() {
   $('#loader-container').show();
   
   proteins.sort((protein1, protein2) => protein1.mnemonic < protein2.mnemonic ? -1 : 1);
+
+  show_proteins();
+  show_genomes();
   
   if(proteins.length === 0 || comparedTaxa.length === 0) {
     $('#loader-container').hide();
@@ -232,8 +243,6 @@ function UpdateChart() {
       // taxonTree = simplifyTree(taxonTree);
       
       renderChart();
-      show_proteins();
-      show_genomes();
     },  endpoint);
   }, "https://orth.dbcls.jp/sparql-proxy-oma");
 }
@@ -422,9 +431,29 @@ $(() => {
     UpdateChart();
   });
 
+
+  $('#share-btn').click((e) => {
+    let url = window.location.href.split('?')[0];
+    url += '?';
+    if(Object.keys(selectedProteins).length > 0 && Object.keys(selectedTaxa).length > 0) {
+      url += Object.keys(selectedTaxa).map(upId => `taxaUPIds[]=${upId}`).join('&');
+      url += '&';
+      url += Object.keys(selectedProteins).map(upId => `proteinUPIds[]=${upId}`).join('&');
+      if(url.length > 7333) {
+        alert("The content is too large for sharing via URI (Current: " + url.length + " / Max: 7333).");
+      } else {
+        navigator.clipboard.writeText(url).then(function() {
+          alert("Current selection is now on clipboard!");
+        });
+      }
+    } else {
+      alert("Select taxons and proteins first!");
+    }
+  });
+
   // TODO: No query is needed if all taxa and proteins are cached
   queryBySpang(`sparql/search_genomes_for_values.rq`,
-    { values: Object.keys(selectedTaxa).filter(up_id => selectedTaxa[up_id] === null).map((id) => `(proteome:${id})`).join(' ') },
+    { values: Object.keys(selectedTaxa).filter(up_id => !selectedTaxa[up_id]).map((id) => `(proteome:${id})`).join(' ') },
     function (data) {
       let data_p = data['results']['bindings'];
       for (let i = 0; i < data_p.length; i++) {
@@ -464,7 +493,7 @@ $(() => {
       }
 
       queryBySpang(`sparql/goid_to_search_proteins.rq`,
-        { values: Object.keys(selectedProteins).filter(up_id => selectedProteins[up_id] === null).map((id) => `(uniprot:${id})`).join(' ') },
+        { values: Object.keys(selectedProteins).filter(up_id => !selectedProteins[up_id]).map((id) => `(uniprot:${id})`).join(' ') },
         function (data) {
           let bindings = data['results']['bindings'];
           for (let i = 0; i < bindings.length; i++) {
