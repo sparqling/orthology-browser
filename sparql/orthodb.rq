@@ -1,0 +1,23 @@
+#!/usr/bin/env spang2
+# @endpoint https://sparql.orthodb.org/sparql
+# @option --time
+
+PREFIX : <http://purl.orthodb.org/>
+PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
+PREFIX uniprot: <http://purl.uniprot.org/uniprot/>
+
+SELECT DISTINCT ?uniprot_human ?taxid ?uniprot
+WHERE {
+  ?cluster a :OrthoGroup ;
+      :hasMember ?member_human, ?member .
+  ?member owl:sameAs ?uniprot .
+  ?member_human owl:sameAs ?uniprot_human .
+  ?uniprot a :Uniprot .
+  ?uniprot_human a :Uniprot .
+  ?member up:organism ?organism .
+  ?organism obo:RO_0002162 ?taxid .
+  VALUES ?uniprot_human { {{proteins}} }
+  VALUES ?taxid { {{taxa}} }
+}
+ORDER BY ?uniprot_human ?taxid
