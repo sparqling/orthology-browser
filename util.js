@@ -88,7 +88,6 @@ function showDbpediaImage(taxa) {
 
 $(document).on('mouseover', '.table-image', (e) => {
   let rect = e.target.getBoundingClientRect();
-  console.log(rect);
   showTooltipImage(window.scrollX + rect.right, window.scrollY + rect.bottom, $(e.target).data('title'), e.target.getAttribute('src'))
 });
 
@@ -109,7 +108,7 @@ function hideTooltip(target) {
 function showTooltipImage(x, y, label, src) {
   let height = 300;
   if(y + height > window.innerHeight + window.scrollY) {
-    y = window.innerHeight + window.scrollY - height;
+    y = window.innerHeight + window.scrollY - height - 50;
   }
   d3.select("#d3tooltip")
     .style("left", (x + 10) + "px")
