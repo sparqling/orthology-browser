@@ -1,0 +1,26 @@
+#!/usr/bin/env spang2
+# @endpoint https://orth.dbcls.jp/sparql-proxy
+# @param values=(uniprot:Q13105) (uniprot:O43542)
+
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+PREFIX uniprot: <http://purl.uniprot.org/uniprot/>
+PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
+PREFIX hop: <http://purl.org/net/orthordf/hOP/ontology#>
+PREFIX nuc: <http://ddbj.nig.ac.jp/ontologies/nucleotide/>
+
+SELECT DISTINCT ?protein ?mnemonic ?full_name ?map
+FROM <http://purl.obolibrary.org/obo/go.owl>
+FROM <http://purl.obolibrary.org/obo/go-hierarchy.owl>
+FROM <http://purl.uniprot.org/uniprot/>
+FROM <https://orth.dbcls.jp/rdf/resource/Homo_sapiens.gene_info>
+WHERE {
+  VALUES(?protein){ {{ values }} } 
+  ?protein up:classifiedWith ?sub_go ;
+      rdfs:seeAlso ?ncbigene ;
+      up:organism upTax:9606 ;
+      a up:Protein .
+  ?ncbigene hop:fullName ?full_name ;
+      rdfs:label ?mnemonic ;
+      nuc:map ?map .
+}
+ORDER BY ?mnemonic

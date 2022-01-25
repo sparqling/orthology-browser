@@ -1,8 +1,4 @@
 
-let initialGenomeMap = {};
-
-window.onload = show_selected_genomes;
-
 Storage.prototype.setObject = function(key, value) {
   this.setItem(key, JSON.stringify(value));
 }
@@ -13,14 +9,9 @@ $(function() {
     // Selected item
     let codename = this_row.find('td:nth-child(3)').text();
 
-    if (localStorage.getItem(taxonPrefix + codename)) {
-      // Delete the item
-      localStorage.removeItem(taxonPrefix + codename);
-    } else {
-      // Add the item
-      localStorage.setObject(taxonPrefix + codename, initialGenomeMap[codename]);
-    }
-    show_selected_genomes();
+    delete selectedTaxa[codename];
+    localStorage.setObject('selectedTaxa', selectedTaxa);
+    
     UpdateChart();
   });
 
@@ -33,21 +24,10 @@ $(function() {
       // Eech item
       let codename = each_row.find('td:nth-child(3)').text();
 
-      if (selected) {
-        // Add the item
-        if (!localStorage.getItem(taxonPrefix + codename)) {
-          localStorage.setObject(taxonPrefix + codename, initialGenomeMap[codename]);
-        }
-      } else {
-        // Delete the item
-        if (localStorage.getItem(taxonPrefix + codename)) {
-          localStorage.removeItem(taxonPrefix + codename);
-        }
-      }
+      delete selectedTaxa[codename];
     }
-
+    localStorage.setObject('selectedTaxa', selectedTaxa);
     UpdateChart();
-    show_selected_genomes();
   });
 });
 
@@ -56,8 +36,6 @@ function get_taxon_table_row(genome_record) {
   if (genome_record.assembly) {
     assembly_url = 'https://ncbi.nlm.nih.gov/assembly/' + genome_record.assembly;
   }
-  let checkedAttr = localStorage.getItem(taxonPrefix + genome_record.up_id) ? "checked" : "";
-
   let scientific_name = genome_record.organism_name;
   let common_name = '';
   if (scientific_name.match(/(.*)?(\(.*)/)) {
@@ -67,7 +45,7 @@ function get_taxon_table_row(genome_record) {
   let name = `<i>${scientific_name}</i> ${common_name}`;
 
   let list_html = '<tr>';
-  list_html += `<td align="center"><input type="checkbox" class="add_genome" ${checkedAttr} title="Select"></td>`;
+  list_html += `<td align="center"><input type="checkbox" class="add_genome" checked title="Select"></td>`;
   if (genome_record.types.match(/Reference_Proteome/)) {
     list_html += '<td align="center"> &#9675 </td>';
   } else {
@@ -78,6 +56,7 @@ function get_taxon_table_row(genome_record) {
   // } else {
   //   list_html += '<td> </td>';
   // }
+  list_html += `<td style="text-align: center;"><img class="table-image" style="height: 25px;" id="image-${genome_record.displayedName}" data-title="${genome_record.displayedName}"></td>`;
   list_html += `<td class="proteome-id-td"><a href="${genome_record.up_id_url}" target="_blank">${genome_record.up_id}</a></td>`;
   list_html += `<td><a href="${assembly_url}" target="_blank">${genome_record.assembly}</a></td>`;
   list_html += '<td>' + genome_record.genome_taxid + '</td>';
@@ -96,11 +75,13 @@ function get_taxon_table_row(genome_record) {
 }
 
 
-function show_selected_genomes() {
+function show_genomes() {
+  let genomes = [baseTaxon].concat(comparedTaxa);
   let total = 0;
   let html = '<thead><tr>' +
     '<th align="center"><input type="checkbox" class="add_genome_all" checked title="Select all"></th>' +
     '<th>Ref</th>' +
+    '<th>Image</th>' +
     // '<th>Rep</th>' +
     '<th>Proteome ID</th>' +
     '<th>Genome ID</th>' +
@@ -116,19 +97,14 @@ function show_selected_genomes() {
     '<th class="thin">miss.</th>' +
     '</tr></thead>';
 
-  for (let i=0; i<localStorage.length; i++) {
-    let key = localStorage.key(i);
-    if (key.startsWith(taxonPrefix)) {
-      let val = JSON.parse(localStorage.getItem(key));
-      initialGenomeMap[key] = val;
-      html += '<tr>' + get_taxon_table_row(val) + '</tr>';
-      total++;
-    }
+  
+  for(let genome of genomes) {
+    html += '<tr>' + get_taxon_table_row(genome) + '</tr>';
   }
   html += '';
 
   $('#selected-proteomes').html(html)
-  $("#proteome-counter").html('<font size="2"><br>You selected <b>' + total + '</b> proteomes (from <a target="_blank" href="https://sparqling.github.io/taxonomy-browser/">Taxonomy Browser</a>)<br><br></font>');
+  $("#proteome-counter").html('<font size="2"><br>You selected <b>' + genomes.length + '</b> proteomes (from <a target="_blank" href="/taxonomy-browser/">Taxonomy Browser</a>)<br><br></font>');
 
   for (let i = 0; i < $('.add_genome').length; i++) {
     let each_checkbox = $('.add_genome').eq(i);

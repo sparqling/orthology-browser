@@ -1,0 +1,17 @@
+#!/usr/bin/env spang2
+# @endpoint orth1
+# @option --time
+# @param taxids='37293 9646 310752 9483 419612 9615 9925 9913 10141'
+
+SELECT DISTINCT ?taxon_int ?parent_int ?taxon_label ?parent_label
+WHERE {
+  VALUES ?input_int { {{taxids}} }
+  BIND(URI(CONCAT('http://identifiers.org/taxonomy/', ?input_int)) AS ?input_uri)
+  ?input_uri rdfs:label ?label ;
+      rdfs:subClassOf* ?taxon .
+  ?taxon rdfs:label ?taxon_label ;
+      dct:identifier ?taxon_int ;
+      rdfs:subClassOf ?parent .
+  ?parent rdfs:label ?parent_label ;
+      dct:identifier ?parent_int .
+}
