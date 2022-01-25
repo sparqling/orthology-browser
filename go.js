@@ -197,14 +197,7 @@ $(function () {
 });
 
 function clear_tables() {
-  $('#main_taxon_name_div').html('');
-  $('#sub_title_div').html('');
-  $('#go_div').html('');
-  $('#dbpedia_div').html('');
-  $('#genome_comparison_div').html('');
-  $('#specific_genes_div').html('');
-  $('#counter_div').html('');
-  $('#details').html('');
+  $('#result-area').hide();
 }
 
 function show_contents(name, display_name = null, push_state = true) {
@@ -243,8 +236,6 @@ function show_contents(name, display_name = null, push_state = true) {
     let html = `<h3><i>${name}</i> (GO ID: ${goid})</h3>`;
     $('#main_taxon_name_div').html(html);
   });
-
-  clear_tables();
 }
 
 function capitalizeFirstLetter(string) {
@@ -588,6 +579,7 @@ function load_url_state(push_state = true) {
     let display_name = urlParams.get('display_name')
     $('#tags').val(display_name || name);
     show_contents(name, display_name, push_state);
+    $('#result-area').show();
   } else {
     $('#tags').val('');
     currentName = null;
