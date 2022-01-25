@@ -306,7 +306,7 @@ function show_hierarchy(taxid, genome_type, lang) {
   let main_count = 0;
   local_promise.then(() => {
     // Show tables
-    let html = '<table id="taxonomy" class="hierarchy">';
+    let html = '<table id="taxonomy" class="hierarchy table">';
     html += '<tr><th colspan="3">Taxonomic hierarchy</th>';
     html += '<th align="center"><font size="2"><i>N</i></font></th></tr>';
     for (let i = 0; i < table_upper.length; i++) {
@@ -450,7 +450,7 @@ function show_dbpedia(taxon_name, taxid, local_lang) {
     }
     let html = '';
     if (wiki) {
-      html += '<table id="dbpedia">';
+      html += '<table id="dbpedia" class="table">';
       html += '<tr><td>';
       if (img) {
         html += '<a target="_blank" href="' + img + '"><img src="' + img + '?height=160" height="160"></a>';
@@ -569,7 +569,7 @@ function show_genomes_table(genomes, count_html) {
 
 
   $('#details_div').html(count_html +
-    '<table id="details" class="tablesorter">' + list_header + list_html + '</table>');
+    '<table id="details" class="table tablesorter">' + list_header + list_html + '</table>');
 
   $('#details').tablesorter({
     headers: {

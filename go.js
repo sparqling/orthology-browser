@@ -204,7 +204,6 @@ function clear_tables() {
   $('#genome_comparison_div').html('');
   $('#specific_genes_div').html('');
   $('#counter_div').html('');
-  $('#details').attr('border', '0');
   $('#details').html('');
 }
 
@@ -240,7 +239,6 @@ function show_contents(name, display_name = null, push_state = true) {
     // show_genome_comparison(goid);
     // show_specific_genes(goid);
     show_protein_list(name, goid);
-    $('#details').attr('border', '1');
     // Show main taxon name
     let html = `<h3><i>${name}</i> (GO ID: ${goid})</h3>`;
     $('#main_taxon_name_div').html(html);
@@ -349,7 +347,7 @@ function show_hierarchy(goid, lang) {
   let main_count = 0;
   local_promise.then(() => {
     // Show tables
-    let html = '<table id="taxonomy" class="hierarchy" border="1">';
+    let html = '<table id="taxonomy" class="hierarchy table">';
     html += '<tr><th colspan="2">GO hierarchy</th>';
     html += '<th align="center"><font size="2"><i>N</i></font></th></tr>';
     for (let i = 0; i < table_upper.length; i++) {
@@ -477,7 +475,7 @@ function show_dbpedia(taxon_name, goid, local_lang) {
     }
     let html = '';
     if (wiki) {
-      html += '<table id="dbpedia" border="1">';
+      html += '<table id="dbpedia" class="table">';
       html += '<tr><td>';
       if (img) {
         html += '<a target="_blank" href="' + img + '"><img src="' + img + '?height=160" height="160"></a>';
@@ -525,7 +523,7 @@ function show_proteins_table(proteins, count_html) {
     '</tr></thead>';
 
   $('#details_div').html(count_html +
-    '</div><table border="1" id="details" class="tablesorter">' + list_header + list_html + '</table>');
+    '</div><table id="details" class="table tablesorter">' + list_header + list_html + '</table>');
 
   $('#details').tablesorter({
     headers: {

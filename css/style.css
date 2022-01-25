@@ -13,9 +13,8 @@
     vertical-align: middle;
 }
 
-
 /* tables */
-table.tablesorter {
+table.table {
     font-family: Arial;
     background-color: #FFF;
     font-size: 12pt;
@@ -23,7 +22,7 @@ table.tablesorter {
     text-align: left;
 }
 
-table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+table.table thead tr th, table.table tfoot tr th {
     background-color: #eee8aa;
     border-collapse: collapse;
     border-spacing: 1px;
@@ -37,14 +36,13 @@ table.tablesorter thead tr .tablesorter-header {
     font-family: Arial;
 }
 
-table.tablesorter tbody td {
+table.table tbody td {
     border: 1px #E3E3E3 solid;
-    border-width: 0 0 1px 1px;
     padding: 1px;
     vertical-align: top;
 }
 
-table.tablesorter tbody tr.odd td {
+table.table tbody tr.odd td {
     background-color: #F0F0F6;
 }
 
@@ -56,49 +54,19 @@ table.tablesorter thead tr .tablesorter-headerDesc {
     background-color: beige;
 }
 
-
-#dbpedia {
-    font-family: Arial;
-    text-align: left;
-    background-color: #fff;
-}
-
-#dbpedia th {
-    background-color: #eee8aa;
-}
-
-#dbpedia thead th tr {
+#taxonomy table{
     border-collapse: collapse;
-    border-spacing: 1px;
-    border: 1px #E3E3E3 solid;
-    padding: 1px;
-}
-
-#dbpedia td {
-    border: 1px #E3E3E3 solid;
-    border-width: 0 0 1px 1px;
-    padding: 1px;
-}
-
-#taxonomy {
-    font-family: Arial;
-    text-align: left;
-    background-color: #fff;
+    border: 1px black solid;
 }
 
 #taxonomy th {
     background-color: #eee8aa;
-    border: 1px #E3E3E3 solid;
+    border: 2px #fff solid;
 }
 
-#taxonomy tr {
-    border: 1px #fff solid;
-    border-width: 0 0 1px 1px;
-}
 
 #taxonomy td {
-    border: 1px #fff solid;
-    border-width: 0 0 1px 1px;
+    border: 2px #fff solid;
 }
 
 /* .genome td:hover { */
