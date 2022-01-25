@@ -1,0 +1,8 @@
+PREFIX taxid: <http://identifiers.org/taxonomy/>
+PREFIX mbgd: <http://purl.jp/bio/11/mbgd#>
+PREFIX mbgdr: <http://mbgd.genome.ad.jp/rdf/resource/>
+SELECT (COUNT(?genome) AS ?count)
+WHERE {
+    mbgdr:default mbgd:organism ?genome .
+    ?genome mbgd:inTaxon taxid:{{ taxid }} .
+}

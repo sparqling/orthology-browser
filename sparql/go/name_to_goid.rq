@@ -1,0 +1,8 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX ortho: <https://orth.dbcls.jp/rdf/ontology#>
+
+SELECT ?goid
+WHERE {
+  ?goid rdfs:label "${name}".
+}

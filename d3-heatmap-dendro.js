@@ -3,27 +3,6 @@
  */
 
 
-function hideTooltip(target) {
-  d3.select(target).classed("cell-hover", false);
-  d3.selectAll(".rowLabel").classed("text-highlight", false);
-  d3.selectAll(".colLabel").classed("text-highlight", false);
-  d3.select("#d3tooltip").transition()
-    .duration(200)
-    .style("opacity", 0);
-}
-
-function showTooltipImage(x, y, label, src) {
-  d3.select("#d3tooltip")
-    .style("left", (x + 10) + "px")
-    .style("top", (y - 10) + "px")
-    .select("#value")
-    .html(`${label}<br><img width="300" height="auto" src="${src}">`);
-  // //Show the tooltip
-  d3.select("#d3tooltip").transition()
-    .duration(200)
-    .style("opacity", .9);
-}
-
 (function () {
   function showToolTip(target, tip) {
     d3.select(target).classed("cell-hover", true);

@@ -3,8 +3,9 @@
   <meta charset="utf-8">
   <title>Orthology Browser</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-  <link rel="stylesheet" href="css/style.css" type="text/css" media="print, projection, screen" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/style.css" type="text/css" media="print, projection, screen"/>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
@@ -17,59 +18,34 @@
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js"></script>
   <script type="text/javascript" src="d3-heatmap-dendro.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/cmpolis/hcluster.js/hcluster.min.js"></script>
+  <script src="util.js"></script>
+  <script src="get_table_row.js"></script>
   <script src="ortholog.js"></script>
-  <script src="taxonomy.js"></script>
   <script src="go.js"></script>
   <style>
-      #d3tooltip {
-          position: absolute;
-          /*width: 200px;*/
-          height: auto;
-          padding: 10px;
-          background-color: #fafafa;
-          -webkit-border-radius: 10px;
-          -moz-border-radius: 10px;
-          border-radius: 10px;
-          -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
-          -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
-          box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
-          pointer-events: none;
-          opacity:0;
-          z-index: 1;
-      }
-
-      #d3tooltip.hidden {
-          display: none;
-      }
-
-      #d3tooltip p {
-          margin: 0;
-          font-family: sans-serif;
-          font-size: 12px;
-          line-height: 20px;
-      }
 
       rect.selection {
-          stroke          : #333;
+          stroke: #333;
           stroke-dasharray: 4px;
-          stroke-opacity  : 0.5;
-          fill            : transparent;
+          stroke-opacity: 0.5;
+          fill: transparent;
       }
 
       rect.cell-border {
           stroke: #eee;
-          stroke-width:0.3px;
+          stroke-width: 0.3px;
       }
 
       rect.cell-selected {
-          stroke: rgb(51,102,153);
-          stroke-width:0.5px;
+          stroke: rgb(51, 102, 153);
+          stroke-width: 0.5px;
       }
 
       rect.cell-hover {
           stroke: #F00;
-          stroke-width:0.3px;
+          stroke-width: 0.3px;
       }
+
       text.mono {
           font-size: 9pt;
           font-family: Consolas, courier;
@@ -84,21 +60,22 @@
   </style>
   <link rel="icon" href="img/favicon.ico"/>
 </head>
-
 <body>
 
 
-<nav class='navbar navbar-expand-md navbar-dark bg-primary' id='header'>
+<nav class='navbar navbar-expand-md navbar-dark bg-primary sticky-top' id='header'>
   <div class="container-fluid">
     <div class="navbar-brand">
-      Orthology Browser
+      <a href="index.html" class="text-white">
+        Orthology Browser
+      </a>
     </div>
     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
       <li class="nav-item">
-        <a class="nav-link active" aria-current="page" href="#">Taxonomy Browser</a>
+        <a href="taxonomy.html" class="nav-link" aria-current="page">Taxonomy Browser</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">GO Browser</a>
+        <a href="go.html" class="nav-link">GO Browser</a>
       </li>
     </ul>
 
@@ -112,60 +89,60 @@
       <label id="selected-protein-label">
       </label>
     </span>
-    <a href="/" target="_blank" class="btn">Check List</a>
   </div>
 </nav>
 
-<div id="main-area" class="my-2 mx-3">
-  
-  
-  <div id="d3tooltip">
-    <p><span id="value"></p>
+<div id="main-area">
+  <div class="mx-3">
+
+    <div id="d3tooltip">
+      <p><span id="value"></p>
+    </div>
+
+    <label for="database-select">Source Database: </label>
+    <select style="margin-left: 10px;" id="database-select">
+      <option>OMA</option>
+      <option>Ortho DB</option>
+      <option>Meta Prediction</option>
+    </select>
+    <label for="h-order-select" style="margin-left: 2.5em">Horizontal Order: </label>
+    <select style="margin-left: 10px;" id="h-order-select">
+      <option value="tree">Cluster by similarity (tree)</option>
+      <option value="cell">Number of cells</option>
+    </select>
+    <label for="v-order-select" style="margin-left: 2.5em">Vertical Order: </label>
+    <select style="margin-left: 10px;" id="v-order-select">
+      <option value="tree">Taxon tree</option>
+      <option value="cell">Number of cells</option>
+    </select>
+    <button type="button" class="btn" style="margin-left: 100px; display: inline; width: 80px; height: 25px"
+            id="share-btn">Share
+    </button>
+    <br>
+    <br>
+
+    <div id="loader-container" style="width: 100%; height: 500px; text-align: center;">
+      <img id="loading-image" src="./img/loader.gif" alt="Loading..."/>
+    </div>
+    <div id="heatmap" style="width: 100%; height: 500px; text-align: center;">
+    </div>
+
+
+    <div class="ui-widget my-3">
+      <!-- List of genomes -->
+      <div id="proteome-counter"></div>
+      <table border="0" id="selected-proteomes" class="tablesorter"></table>
+    </div>
+
+    <div class="ui-widget my-3">
+      <!-- List of genomes -->
+      <div id="protein-counter"></div>
+      <table border="0" id="selected-proteins" class="tablesorter"></table>
+    </div>
+    <hr>
+
+
   </div>
-
-
-
-  <label for="database-select">Source Database: </label>
-  <select style="margin-left: 10px;" id="database-select">
-    <option>OMA</option>
-    <option>Ortho DB</option>
-    <option>Meta Prediction</option>
-  </select>
-  <label for="h-order-select" style="margin-left: 2.5em">Horizontal Order: </label>
-  <select style="margin-left: 10px;" id="h-order-select">
-    <option value="tree">Cluster by similarity (tree)</option>
-    <option value="cell">Number of cells</option>
-  </select>
-  <label for="v-order-select" style="margin-left: 2.5em">Vertical Order: </label>
-  <select style="margin-left: 10px;" id="v-order-select">
-    <option value="tree">Taxon tree</option>
-    <option value="cell">Number of cells</option>
-  </select>
-  <button type="button" class="btn" style="margin-left: 100px; display: inline; width: 80px; height: 25px" id="share-btn">Share</button>
-  <br>
-  <br>
-
-  <div id="loader-container" style="width: 100%; height: 500px; text-align: center;">
-    <img id="loading-image" src="./loader.gif" alt="Loading..." />
-  </div>
-  <div id="heatmap" style="width: 100%; height: 500px; text-align: center;">
-  </div>
-
-
-  <div class="ui-widget my-3">
-    <!-- List of genomes -->
-    <div id="proteome-counter"></div>
-    <table border="0" id="selected-proteomes" class="tablesorter"></table>
-  </div>
-
-  <div class="ui-widget my-3">
-    <!-- List of genomes -->
-    <div id="protein-counter"></div>
-    <table border="0" id="selected-proteins" class="tablesorter"></table>
-  </div>
-  <hr>
-
-  
 </div>
 
 

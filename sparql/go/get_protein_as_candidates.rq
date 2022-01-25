@@ -1,0 +1,27 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
+PREFIX ortho: <https://orth.dbcls.jp/rdf/ontology#>
+
+SELECT ?name ?commonName
+WHERE {
+  {
+    SELECT ?taxon (COUNT(?proteome) AS ?count)
+    WHERE {
+      ?proteome a up:Proteome;
+          up:organism ?up_taxid ;
+          rdfs:label ?org_label .
+      ?up_taxid rdfs:subClassOf? ?taxon .
+    }
+  }
+  ?taxon up:scientificName ?name ;
+      up:rank ?rank .
+  ?rank ortho:taxRankDepth ?depth .
+
+  ?taxon rdfs:subClassOf upTax:2759.
+
+  OPTIONAL {
+    ?taxon up:commonName ?commonName.
+  }
+}
+ORDER BY DESC(?count) ?depth ?name

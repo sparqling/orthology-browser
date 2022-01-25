@@ -1,0 +1,14 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX ortho: <https://orth.dbcls.jp/rdf/ontology#>
+
+SELECT ?rank ?taxon (COUNT(?organism) AS ?count)
+WHERE {
+  ?organism a up:Proteome ;
+      up:organism ?up_taxid .
+  ?up_taxid rdfs:subClassOf? ?taxon .
+  ?taxon up:scientificName "${taxon_name}";
+      up:rank ?rank .
+  ?rank ortho:taxRankDepth ?depth .
+}
+ORDER BY ?count
