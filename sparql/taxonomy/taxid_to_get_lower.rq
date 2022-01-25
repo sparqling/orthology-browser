@@ -1,0 +1,21 @@
+PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
+PREFIX ortho: <https://orth.dbcls.jp/rdf/ontology#>
+
+SELECT ?rank ?label ?count
+WHERE {
+  ?taxon ortho:parentTaxon upTax:$taxid;
+      up:scientificName ?label ;
+	  up:rank ?rank .
+  ?rank ortho:taxRankDepth ?depth .
+  {
+    SELECT (COUNT(DISTINCT ?organism) AS ?count) ?taxon
+    WHERE {
+      ?organism up:organism ?up_taxid ;
+          rdfs:label ?org_label ;
+          a up:Proteome .
+      ?up_taxid rdfs:subClassOf? ?taxon .
+    }
+  }
+}
+ORDER BY ?depth ?label

@@ -1,0 +1,25 @@
+#!/usr/bin/env spang2
+# @endpoint dbpedia
+# @param entry=dbpedia:Homo
+# @param lang_list=("ja")
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+
+SELECT ?entry ?label ?wiki ?image
+WHERE {
+  ?entry wdt:P225 "{{ taxon_name }}" ;
+              rdfs:label ?label.
+  ?wiki schema:about ?entry ;
+           schema:isPartOf ?url.
+  OPTIONAL {
+     ?entry wdt:P18 ?image.
+  }
+  FILTER(lang(?label) = ?lang)
+  VALUES (?url ?lang) { 
+    {{#lang_list}}
+        (<https://{{.}}.wikipedia.org/> "{{.}}")
+    {{/lang_list}}
+  }
+}

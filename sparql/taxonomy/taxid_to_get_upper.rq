@@ -1,0 +1,23 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
+PREFIX taxid: <http://identifiers.org/taxonomy/>
+PREFIX ortho: <https://orth.dbcls.jp/rdf/ontology#>
+
+SELECT DISTINCT ?rank ?label ?taxon ?count
+WHERE {
+  upTax:{{ taxid }} rdfs:subClassOf ?taxon .
+  ?taxon up:scientificName ?label ;
+      up:rank ?rank .
+  ?rank ortho:taxRankDepth ?depth .
+  {
+    SELECT (COUNT(DISTINCT ?organism) AS ?count) ?taxon
+    WHERE {
+      ?proteome a up:Proteome ;
+          rdfs:label ?organism ;
+          up:organism ?up_taxid .
+      ?up_taxid rdfs:subClassOf ?taxon .
+    }
+  }
+}
+ORDER BY ?depth

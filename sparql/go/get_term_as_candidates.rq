@@ -1,0 +1,15 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+
+SELECT DISTINCT ?term ?name
+FROM <http://purl.obolibrary.org/obo/go.owl>
+WHERE {
+  {
+    ?term rdfs:subClassOf* obo:GO_0008150 . # biological process
+  } UNION {
+    ?term rdfs:subClassOf* obo:GO_0005575 . # cellular component
+  } UNION {
+    ?term rdfs:subClassOf* obo:GO_0003674 . # molecular function
+  }
+  ?term rdfs:label ?name .
+}

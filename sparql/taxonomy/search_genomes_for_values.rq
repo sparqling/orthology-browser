@@ -1,0 +1,31 @@
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
+PREFIX proteome: <http://purl.uniprot.org/proteomes/>
+PREFIX taxid: <http://identifiers.org/taxonomy/>
+PREFIX busco: <htttp://busco.ezlab.org/schema#>
+
+SELECT DISTINCT ?proteome ?taxid ?organism ?proteins ?isoforms ?cpd_label ?busco_complete ?busco_single ?busco_multi ?busco_fragmented ?busco_missing ?assembly (group_concat(distinct ?type ; separator = ", ") AS ?types)
+WHERE {
+  VALUES (?proteome) { {{ values }} }
+  ?proteome a up:Proteome ;
+      a ?type ;
+      rdfs:label ?organism ;
+      up:proteins ?proteins ;
+      up:isoforms ?isoforms ;
+      skos:closeMatch/rdfs:label ?cpd_label ;
+      up:organism ?taxid .
+  OPTIONAL {
+    ?proteome busco:has_score ?busco .
+    ?busco busco:complete ?busco_complete .
+    ?busco busco:completeSingle ?busco_single .
+    ?busco busco:completeMulti ?busco_multi .
+    ?busco busco:fragmented ?busco_fragmented .
+    ?busco busco:missing ?busco_missing .
+  }
+  OPTIONAL {
+    ?proteome rdfs:seeAlso/dct:identifier ?assembly .
+  }
+}
+ORDER BY ?organism

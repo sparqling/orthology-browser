@@ -1,0 +1,23 @@
+#!/usr/bin/env spang2
+# @endpoint dbpedia
+# @param entry=dbpedia:Homo
+# @param lang_list=("ja")
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbpedia: <http://dbpedia.org/resource/>
+
+SELECT ?label ?abst ?wiki ?image
+WHERE {
+  {{entry}} dbo:wikiPageRedirects? ?dbpedia_entry .
+  ?dbpedia_entry rdfs:label ?label ;
+                 dbo:abstract ?abst ;
+                 foaf:isPrimaryTopicOf ?wiki .
+  OPTIONAL {
+    ?dbpedia_entry foaf:depiction ?image .
+  }
+  FILTER(lang(?label) = ?lang)
+  FILTER(lang(?abst) = ?lang)
+  VALUES (?lang) { ("en") {{lang_list}} }
+}

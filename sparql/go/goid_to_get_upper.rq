@@ -1,0 +1,33 @@
+#!/usr/bin/env spang2
+# @endpoint https://orth.dbcls.jp/sparql-proxy
+# @param goid=GO_0045787
+
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
+
+SELECT DISTINCT ?go ?go_label ?parent ?count
+FROM <http://purl.obolibrary.org/obo/go.owl>
+FROM <http://purl.obolibrary.org/obo/go-hierarchy.owl>
+FROM <http://purl.uniprot.org/uniprot/>
+WHERE {
+  obo:{{goid}} rdfs:subClassOf ?go .
+  ?go a owl:Class ;
+      rdfs:label ?go_label .
+  OPTIONAL {
+    GRAPH <http://purl.obolibrary.org/obo/go.owl> {
+      ?go rdfs:subClassOf ?parent .
+    }
+    ?parent a owl:Class .
+  }
+  {
+    SELECT (COUNT(DISTINCT ?protein) AS ?count) ?go
+    WHERE {
+      ?protein up:classifiedWith ?sub_go ;
+          up:organism upTax:9606 ;
+          a up:Protein .
+      ?sub_go rdfs:subClassOf? ?go .
+    }
+  }
+}
+ORDER BY DESC(?count)

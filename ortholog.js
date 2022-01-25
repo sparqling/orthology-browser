@@ -1,19 +1,7 @@
-const endpoint = 'https://orth.dbcls.jp/sparql-proxy';
-const dbpediaEndpoint = 'https://dbpedia.org/sparql';
-
 let comparedTaxa = [];
 
-Storage.prototype.setObject = function(key, value) {
-  this.setItem(key, JSON.stringify(value));
-}
-
-Storage.prototype.getObject = function(key) {
-  return JSON.parse(this.getItem(key));
-}
 
 const urlParams = new URLSearchParams(window.location.search);
-let selectedTaxa;
-let selectedProteins;
 let taxaParam = [];
 let proteinsParam = [];
 for(let entry of urlParams.entries()) {
@@ -77,39 +65,17 @@ mapDisplayedNameToProtein = {};
 
 mapNameToTaxa[baseTaxon.displayedName] = baseTaxon;
 mapTaxIdToTaxa[baseTaxon.genome_taxid] = baseTaxon;
-mapTaxIdToThumbnail = {};
 
 Storage.prototype.getObject = function (key) {
   let val = this.getItem(key);
   return val && JSON.parse(val) || {};
 }
 
-function queryBySpang(queryUrl, param, callback, target_end = null) {
-  $.get(queryUrl, (query) => {
-    spang.query(query, target_end ? target_end : endpoint, {
-      param: param,
-      format: 'json'
-    }, (error, status, result) => {
-      let resultJson;
-      try {
-        resultJson = JSON.parse(result);
-      } catch (e) {
-        console.log(e);
-        resultJson = {
-          results:
-            {
-              bindings: {}
-            }
-        };
-      }
-      callback(resultJson);
-    });
-  });
-}
-
 function UpdateChart() {
   tooltips = {};
   series = null;
+  
+  updateSelectedCount();
 
   mapNameToTaxa = {};
   mapTaxIdToTaxa = {};
@@ -152,7 +118,7 @@ function UpdateChart() {
   if(proteins.length === 0 || comparedTaxa.length === 0) {
     $('#loader-container').hide();
     $('#heatmap').show();
-    $('#heatmap')[0].innerText = "No candidates selected";
+    $('#heatmap')[0].innerText = "Select more than one proteomes and proteins to see orthologs.";
     return;
   }
 
@@ -520,58 +486,158 @@ $(() => {
 });
 
 
-function dbpedia_uri(taxonName) {
-  if (taxonName == 'Chania'
-    || taxonName == 'Nitrososphaeria'
-    || taxonName == 'Candidatus Korarchaeum cryptofilum') {
-    return;
-  } else if (taxonName == 'Proteus') {
-    return {name: 'Proteus_(bacterium)', uri: '<http://dbpedia.org/resource/Proteus_(bacterium)>'};
-  } else if (taxonName == 'Pan') {
-    return {name: 'Pan_(genus)', uri: '<http://dbpedia.org/resource/Pan_(genus)>'};
+
+
+$(function() {
+  $(document).on('click', '.add_genome', function() {
+    let codename = $(this).data('codename');
+    delete selectedTaxa[codename];
+    localStorage.setObject('selectedTaxa', selectedTaxa);
+    UpdateChart();
+  });
+
+  $(document).on('click', '.add_genome_all', function() {
+    // Swith the icon
+    let selected = $(this).prop('checked');
+    for (let i=0; i<$('.add_genome').length; i++) {
+      let codename = $('.add_genome').eq(i).data('codename');
+      delete selectedTaxa[codename];
+    }
+    localStorage.setObject('selectedTaxa', selectedTaxa);
+    UpdateChart();
+  });
+});
+
+
+
+function show_genomes() {
+  let genomes = [baseTaxon].concat(comparedTaxa);
+  let total = 0;
+  let html = '<thead><tr>' +
+    '<th align="center"><input type="checkbox" class="add_genome_all" checked title="Select all"></th>' +
+    '<th>Ref</th>' +
+    '<th>Image</th>' +
+    // '<th>Rep</th>' +
+    '<th>Proteome ID</th>' +
+    '<th>Genome ID</th>' +
+    '<th>Tax ID</th>' +
+    '<th>Species Name</th>' +
+    '<th>Genes</th>' +
+    '<th>Isoforms</th>' +
+    '<th>CPD <a href="https://uniprot.org/help/assessing_proteomes" target="_blank">*</a></th>' +
+    '<th>BUSCO</th>' +
+    '<th class="thin">single</th>' +
+    '<th class="thin">dupli.</th>' +
+    '<th class="thin">frag.</th>' +
+    '<th class="thin">miss.</th>' +
+    '</tr></thead>';
+
+
+  for(let genome of genomes) {
+    html += '<tr>' + get_taxon_table_row(genome) + '</tr>';
+  }
+  html += '';
+
+  $('#selected-proteomes').html(html)
+
+  for (let i = 0; i < $('.add_genome').length; i++) {
+    let each_checkbox = $('.add_genome').eq(i);
+    each_checkbox.prop("checked", true);
+  }
+
+  $(function() {
+    $.tablesorter.addParser({
+      id: "fancyNumber",
+      is: function(s) {
+        return /^[0-9]?[0-9,\.]*$/.test(s);
+      },
+      format: function(s) {
+        return $.tablesorter.formatFloat(s.replace(/,/g, ''));
+      },
+      type: "numeric"
+    });
+    $('#selected-proteomes').tablesorter(
+      {
+        headers: {
+          0: {sorter:false},
+          7: {sorter:'fancyNumber'},
+          8: {sorter:'fancyNumber'},
+        }
+      }
+    );
+  });
+}
+
+
+$(function() {
+  $(document).on('click', '.add_protein', function() {
+    let this_row = $(this).closest('tr');
+    // Selected item
+    let codename = this_row.find('td:nth-child(2)').text();
+
+    delete selectedProteins[codename];
+    localStorage.setObject('selectedProteins', selectedProteins);
+    UpdateChart();
+  });
+
+  $(document).on('click', '.add_protein_all', function() {
+    // Swith the icon
+    let selected = $(this).prop('checked');
+    for (let i=0; i<$('.add_protein').length; i++) {
+      let each_icon = $('.add_protein').eq(i);
+      let each_row = each_icon.closest('tr');
+      // Eech item
+      let codename = each_row.find('td:nth-child(2)').text();
+      // Delete the item
+      delete selectedProteins[codename];
+    }
+    localStorage.setObject('selectedProteins', selectedProteins);
+    UpdateChart();
+  });
+});
+
+function show_proteins() {
+  let total = 0;
+  let html = '<thead><tr>' +
+    '<th style="width: 1.5em;"align="center"><input type="checkbox" checked class="add_protein_all" title="Select all"></th>' +
+    '<th style="width: 7em;">Uniprot ID</th>' +
+    '<th style="width: 9em;">Mnemonic</th>' +
+    '<th>Full name</th>' +
+    '<th style="width: 9em;">Map</th>' +
+    '</tr></thead>';
+
+  for(let protein of proteins) {
+    html += '<tr>' + get_go_table_row(protein) + '</tr>';
+  }
+  html += '';
+
+  $('#selected-proteins').html(html)
+
+  for (let i = 0; i < $('.add_protein').length; i++) {
+    let each_checkbox = $('.add_protein').eq(i);
+    each_checkbox.prop("checked", true);
   }
 
 
-  let matched = taxonName.match(/^[^\(]+/);
-  if(matched)
-    taxonName = matched[0].trim();
-
-  let dbpedia_name = taxonName
-    .replace(/\s/g, '_')
-    .replace(/^Candidatus_/, '')
-    .replace(/\//g, '_')
-    .replace(/'/g, '')
-    .replace(/\(/g, '_').replace(/\)/g, '_')
-    .replace(/\[/g, '').replace(/\]/g, '');
-
-  return 'dbpedia:' + dbpedia_name;
+  $(function() {
+    $.tablesorter.addParser({
+      id: "fancyNumber",
+      is: function(s) {
+        return /^[0-9]?[0-9,\.]*$/.test(s);
+      },
+      format: function(s) {
+        return $.tablesorter.formatFloat(s.replace(/,/g, ''));
+      },
+      type: "numeric"
+    });
+    $('#selected-proteins').tablesorter(
+      {
+        headers: {
+          0: {sorter:false},
+          7: {sorter:'fancyNumber'},
+          8: {sorter:'fancyNumber'},
+        }
+      }
+    );
+  });
 }
-
-function showDbpediaImage(taxa) {
-  taxa.forEach((taxon) => {
-    if(mapTaxIdToThumbnail[taxon.genome_taxid]) {
-      document.getElementById(`row-image-${taxon.displayedName}`).setAttribute('href', mapTaxIdToThumbnail[taxon.genome_taxid]);
-      document.getElementById(`image-${taxon.displayedName}`).setAttribute('src', mapTaxIdToThumbnail[taxon.genome_taxid]);
-    } else {
-      queryBySpang(`sparql/dbpedia_thumbnails.rq`, {
-          taxon: dbpedia_uri(taxon.organism_name),
-        }, (res) => {
-          let thumbnailUri = res.results.bindings[0]?.image.value;
-          document.getElementById(`row-image-${taxon.displayedName}`).setAttribute('href', thumbnailUri);
-          document.getElementById(`image-${taxon.displayedName}`).setAttribute('src', thumbnailUri);
-          mapTaxIdToThumbnail[taxon.genome_taxid] = thumbnailUri;  
-        }, dbpediaEndpoint
-      )
-    }
-  })
-}
-
-$(document).on('mouseover', '.table-image', (e) => {
-  let rect = e.target.getBoundingClientRect();
-  showTooltipImage(rect.right, rect.bottom, $(e.target).data('title'), e.target.getAttribute('src'))
-});
-
-
-$(document).on('mouseout', '.table-image', (e) => {
-  hideTooltip(e.target);
-});
