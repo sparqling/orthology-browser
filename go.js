@@ -236,6 +236,8 @@ function show_contents(name, display_name = null, push_state = true) {
     let html = `<h3><i>${name}</i> (GO ID: ${goid})</h3>`;
     $('#main_taxon_name_div').html(html);
   });
+  
+  $('#result-area').show();
 }
 
 function capitalizeFirstLetter(string) {

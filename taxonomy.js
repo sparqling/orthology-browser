@@ -6,8 +6,6 @@ let currentGenomeMap = {};
 const sparqlDir = '/sparql/taxonomy';
 const commonSparqlDir = '/sparql/';
 
-
-
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
@@ -157,14 +155,7 @@ $(function () {
 });
 
 function clear_tables() {
-  $('#main_taxon_name_div').html('');
-  $('#sub_title_div').html('');
-  $('#taxonomy_div').html('');
-  $('#dbpedia_div').html('');
-  $('#genome_comparison_div').html('');
-  $('#specific_genes_div').html('');
-  $('#counter_div').html('');
-  $('#details').html('');
+  $('#result-area').hide();
 }
 
 function show_contents(taxon_name, display_name = null, push_state = true) {
@@ -204,9 +195,10 @@ function show_contents(taxon_name, display_name = null, push_state = true) {
     // Show main taxon name
     let html = `<h3><i>${taxon_name}</i> (Taxonomy ID: ${taxid})</h3>`;
     $('#main_taxon_name_div').html(html);
+    $('#result-area').show();
   });
 
-  clear_tables();
+  $('#result-area').show();
 }
 
 function dbpedia_name(taxon_name) {
@@ -655,44 +647,6 @@ function show_genome_list(rank, taxon_name, taxid, genome_type) {
   });
 
   return count;
-}
-
-function saveInlocalStorage(up_id_url, up_id, types, organism_name, genome_taxid, n_genes, n_isoforms, cpd_label, busco_complete, busco_single, busco_multi, busco_fragmented, busco_missing, assembly) {
-  let assembly_url = '';
-  if (assembly) {
-    assembly_url = 'https://ncbi.nlm.nih.gov/assembly/' + assembly;
-  }
-
-  let scientific_name = organism_name;
-  let common_name = '';
-  if (organism_name.match(/(.*)?(\(.*)/)) {
-    scientific_name = RegExp.$1;
-    common_name = RegExp.$2;
-  }
-  let name = `<i>${scientific_name}</i> ${common_name}`;
-
-  let list_html = '<tr>';
-  list_html += '<td align="center"><input type="checkbox" class="add_genome" title="Select"></td>';
-  if (types.match(/Reference_Proteome/)) {
-    list_html += '<td align="center"> &#9675 </td>';
-  } else {
-    list_html += '<td> </td>';
-  }
-  list_html += `<td><a href="${up_id_url}" target="_blank">${up_id}</a></td>`;
-  list_html += `<td><a href="${assembly_url}" target="_blank">${assembly}</a></td>`;
-  list_html += '<td>' + genome_taxid + '</td>';
-  list_html += '<td class="genome_name">' + name + '</td>';
-  list_html += '<td align="right">' + n_genes.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
-  list_html += '<td align="right">' + n_isoforms.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
-  list_html += '<td align="right">' + cpd_label + '</td>';
-  list_html += '<td align="right">' + busco_complete + '</td>';
-  list_html += '<td align="right">' + busco_single + '</td>';
-  list_html += '<td align="right">' + busco_multi + '</td>';
-  list_html += '<td align="right">' + busco_fragmented + '</td>';
-  list_html += '<td align="right">' + busco_missing + '</td>';
-  list_html += '</tr>';
-
-  localStorage.setItem(up_id, list_html);
 }
 
 function load_url_state(push_state = true) {
