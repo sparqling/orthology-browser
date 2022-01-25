@@ -68,7 +68,7 @@ function dbpedia_uri(taxonName) {
 function showDbpediaImage(taxa) {
   taxa.forEach((taxon) => {
     if(mapTaxIdToThumbnail[taxon.genome_taxid] !== undefined) {
-      document.getElementById(`row-image-${taxon.up_id}`)?.setAttribute('href', mapTaxIdToThumbnail[taxon.genome_taxid]);
+      document.getElementById(`row-image-${taxon.displayedName}`)?.setAttribute('href', mapTaxIdToThumbnail[taxon.genome_taxid]);
       document.getElementById(`image-${taxon.up_id}`)?.setAttribute('src', mapTaxIdToThumbnail[taxon.genome_taxid]);
     } else {
       queryBySpang(`sparql/dbpedia_thumbnails.rq`, {
@@ -76,7 +76,7 @@ function showDbpediaImage(taxa) {
         }, (res) => {
           let thumbnailUri = res.results.bindings[0]?.image.value;
           if(thumbnailUri) {
-            document.getElementById(`row-image-${taxon.up_id}`)?.setAttribute('href', thumbnailUri);
+            document.getElementById(`row-image-${taxon.displayedName}`)?.setAttribute('href', thumbnailUri);
             document.getElementById(`image-${taxon.up_id}`)?.setAttribute('src', thumbnailUri);
           }
           mapTaxIdToThumbnail[taxon.genome_taxid] = thumbnailUri ?? '';
