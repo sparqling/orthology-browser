@@ -13,6 +13,8 @@ let dbConfig = {
 
 let srcDB = sessionStorage.getItem('srcDB') || localStorage.getItem('srcDB') || 'orthodb';
 let showCellNumber = localStorage.getItem('showCellNumber') === 'true';
+let horizontalOrder = localStorage.getItem('h-order') || 'tree';
+let verticalOrder = localStorage.getItem('v-order') || 'tree';
 
 const urlParams = new URLSearchParams(window.location.search);
 let taxaParam = [];
@@ -46,9 +48,6 @@ if(taxaParam.length > 0 || proteinsParam.length > 0) {
 selectedTaxa = localStorage.getObject('selectedTaxa') || {};
 selectedProteins = localStorage.getObject('selectedProteins') || {};
 
-
-let hOrderedByCellNum = false;
-let vOrderedByCellNum = false;
 
 let baseTaxon = {
   genome_taxid: "9606",
@@ -212,9 +211,6 @@ function UpdateChart() {
     }
 
     series.sort((row1, row2) => row1.cellNum < row2.cellNum || (row1.cellNum == row2.cellNum) && row1.sum < row2.sum ? 1 : -1);
-    let columnVectors = [];
-    for(let i = 0; i < series[0].data.length; i++)
-      columnVectors.push(series.map(elem => elem.data[i].y));
     
     queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
       [taxonTree, humanNode] = constructTree(res.results);
@@ -348,9 +344,14 @@ function renderChart() {
     });
   }
   let dataForD3 = {};
-  columnVectors.sort((col1, col2) => col1.cellNum < col2.cellNum || (col1.cellNum == col2.cellNum) && col1.sum < col2.sum ? 1 : -1);
+  if(horizontalOrder === 'cell') {
+    columnVectors.sort((col1, col2) => col1.cellNum < col2.cellNum || (col1.cellNum == col2.cellNum) && col1.sum < col2.sum ? 1 : -1);
+  }
+  else if(horizontalOrder === 'alpha')  {
+    columnVectors.sort((col1, col2) => col1.name > col2.name ? 1 : -1);
+  }
 
-  if(hOrderedByCellNum) {
+  if(horizontalOrder !== 'tree') {
     dataForD3.colJSON = constructDummyTree(columnVectors);
   } else {
     let cluster = hcluster().distance('euclidean').linkage('avg').posKey('val').data(columnVectors);
@@ -358,7 +359,7 @@ function renderChart() {
   }
   let orderedProteins = orderedLeaves(dataForD3.colJSON);
 
-  if(vOrderedByCellNum) {
+  if(verticalOrder !== 'tree') {
     dataForD3.rowJSON = constructDummyTree(series);
   } else {
     dataForD3.rowJSON = taxonTree;
@@ -379,7 +380,7 @@ function renderChart() {
   });
   dataForD3.matrix = matrix;
   
-  d3.heatmapDendro(dataForD3, "#heatmap", !hOrderedByCellNum, !vOrderedByCellNum, showCellNumber);
+  d3.heatmapDendro(dataForD3, "#heatmap", horizontalOrder === 'tree', verticalOrder === 'tree', showCellNumber);
   showDbpediaImage(comparedTaxa);
   showDbpediaImage([baseTaxon]);
 }

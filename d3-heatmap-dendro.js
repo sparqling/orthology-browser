@@ -76,10 +76,8 @@
     const rowLabelWidth = 150;
     const colLabelHeight = 80;
     
-    console.log(cellHeight);
-    console.log(rowNumber);
-    console.log(height);
-    container.style.height =  `${height + clusterSpace + colLabelHeight + 10}px`;
+    let containerHeight = Math.max(height + clusterSpace + colLabelHeight + 10, 500)
+    container.style.height =  `${containerHeight}px`;
     
     let matrix = [], max = 0;
     for (let r = 0; r < rowNumber; r++) {
