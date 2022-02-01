@@ -52,6 +52,12 @@
           fill: #aaa;
       }
 
+      text.cell-label {
+          font-size: 10pt;
+          font-family: Consolas, courier;
+          fill: white;
+      }
+
       .rlink, .clink {
           fill: none;
           stroke: #ccc;
@@ -117,6 +123,9 @@
       <option value="tree">Cluster by similarity (tree)</option>
       <option value="cell">Number of cells</option>
     </select>
+
+    <label for="cell-label-checkbox" style="margin-left: 2.5em">Show number: </label>
+    <input type="checkbox" id="cell-label-checkbox">
     <button type="button" class="btn" style="margin-left: 100px; display: inline; width: 80px; height: 25px"
             id="share-btn">Share
     </button>

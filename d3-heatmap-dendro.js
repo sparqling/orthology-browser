@@ -26,7 +26,7 @@
     }
   }
   
-  d3.heatmapDendro = function (data, parent, showColTree, showRowTree) {
+  d3.heatmapDendro = function (data, parent, showColTree, showRowTree, showCellNumber) {
     if (!data || !data.matrix)
       return;
 
@@ -65,7 +65,7 @@
       rowLabel = labelsFromTree(rowNodes, rowCluster),
       colLabel = labelsFromTree(colNodes, colCluster);
     let cellWidth = width / colNumber;
-    let cellHeight = height / rowNumber;
+    let cellHeight = Math.max(height / rowNumber, 20);
     const rowLabelWidth = 150;
     const colLabelHeight = 80;
     
@@ -167,13 +167,13 @@
         return d.row + ":" + d.col;
       })
       .enter()
-      .append("rect")
-      .attr("x", function (d) {
-        return (d.col - 1) * cellWidth + clusterSpace + rowLabelWidth + 10 + cellHeight;
+      .append("g")
+      .attr("transform", function (d, i) {
+        return `translate(${(d.col - 1) * cellWidth + clusterSpace + rowLabelWidth + 10 + cellHeight},
+         ${(d.row - 1) * cellHeight + clusterSpace + colLabelHeight + 10})`;
       })
-      .attr("y", function (d) {
-        return (d.row - 1) * cellHeight + clusterSpace + colLabelHeight + 10;
-      })
+      
+    heatMap.append("rect")
       .attr("class", function (d) {
         return "cell cell-border cr" + (d.row - 1) + " cc" + (d.col - 1);
       })
@@ -193,8 +193,18 @@
         showToolTip(this, tips);
       })
       .on("mouseout", function(){ hideTooltip(this); })
-    ;
     
+    if(showCellNumber) {
+      heatMap
+        .append('text')
+        .attr("x", cellWidth / 2)
+        .attr('y', cellHeight - 5)
+        .text((d) => d.value ? d.value : '')
+        .attr("class", (d, i) => {
+          return "cell-label r";
+        });
+    }
+
     if(showRowTree) {
       //tree for rows
       let rTree = svg.append("g").attr("class", "rtree")

@@ -12,6 +12,7 @@ let dbConfig = {
 };
 
 let srcDB = localStorage.getItem('srcDB') || 'orthodb';
+let showCellNumber = localStorage.getItem('showCellNumber') === 'true';
 
 const urlParams = new URLSearchParams(window.location.search);
 let taxaParam = [];
@@ -378,7 +379,7 @@ function renderChart() {
   });
   dataForD3.matrix = matrix;
   
-  d3.heatmapDendro(dataForD3, "#heatmap", !hOrderedByCellNum, !vOrderedByCellNum);
+  d3.heatmapDendro(dataForD3, "#heatmap", !hOrderedByCellNum, !vOrderedByCellNum, showCellNumber);
   showDbpediaImage(comparedTaxa);
   showDbpediaImage([baseTaxon]);
 }
@@ -417,6 +418,12 @@ $(() => {
   });
   $('#database-select').val(srcDB);
 
+
+  $('#cell-label-checkbox').on('change', (e) => {
+    showCellNumber = e.target.checked;
+    localStorage.setItem('showCellNumber', showCellNumber);
+    renderChart();
+  }).val(showCellNumber);
 
   $('#share-btn').click((e) => {
     let url = window.location.href.split('?')[0];
