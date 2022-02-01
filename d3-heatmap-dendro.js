@@ -49,14 +49,23 @@
     };
     
     let container = document.querySelector(parent);
+    
+    let colNumber = data.matrix[0].length,
+      rowNumber = data.matrix.length;
+    let clusterSpace = 150;
 
-    let clusterSpace = 150, // size of the cluster tree
-      colNumber = data.matrix[0].length,
-      rowNumber = data.matrix.length,
-      width =
-        container.offsetWidth * 0.8 - clusterSpace,
-      height = container.offsetHeight * 0.8 - clusterSpace,
-      rowCluster = d3.layout.cluster()
+    let minimumWidth =
+      container.offsetWidth * 0.8 - clusterSpace,
+      minimumHeight = container.offsetHeight * 0.8 - clusterSpace;
+    
+    let cellWidth = Math.max(minimumWidth / colNumber, 20);
+    let cellHeight = Math.max(minimumHeight / rowNumber, 20);
+    
+    let width = cellWidth * colNumber;
+    let height = cellHeight * rowNumber;
+
+    // size of the cluster tree
+    let rowCluster = d3.layout.cluster()
         .size([height, clusterSpace]).separation(() => 1),
       colCluster = d3.layout.cluster()
         .size([width, clusterSpace]).separation(() => 1),
@@ -64,10 +73,13 @@
       colNodes = colCluster.nodes(data.colJSON),
       rowLabel = labelsFromTree(rowNodes, rowCluster),
       colLabel = labelsFromTree(colNodes, colCluster);
-    let cellWidth = width / colNumber;
-    let cellHeight = Math.max(height / rowNumber, 20);
     const rowLabelWidth = 150;
     const colLabelHeight = 80;
+    
+    console.log(cellHeight);
+    console.log(rowNumber);
+    console.log(height);
+    container.style.height =  `${height + clusterSpace + colLabelHeight + 10}px`;
     
     let matrix = [], max = 0;
     for (let r = 0; r < rowNumber; r++) {
