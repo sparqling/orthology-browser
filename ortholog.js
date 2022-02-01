@@ -12,17 +12,21 @@ for(let entry of urlParams.entries()) {
   }
 }
 
-if(taxaParam.length > 0 && proteinsParam.length > 0) {
-  selectedTaxa = {};
-  for(let taxonUPId of taxaParam) {
-    selectedTaxa[taxonUPId] = null;
+if(taxaParam.length > 0 || proteinsParam.length > 0) {
+  if(taxaParam.length > 0) {
+    selectedTaxa = {};
+    for (let taxonUPId of taxaParam) {
+      selectedTaxa[taxonUPId] = null;
+    }
+    localStorage.setObject('selectedTaxa', selectedTaxa);
+    selectedProteins = {};
   }
-  selectedProteins = {};
-  for(let proteinUPId of proteinsParam) {
-    selectedProteins[proteinUPId] = null;
+  if(proteinsParam.length > 0) {
+    for (let proteinUPId of proteinsParam) {
+      selectedProteins[proteinUPId] = null;
+    }
+    localStorage.setObject('selectedProteins', selectedProteins);
   }
-  localStorage.setObject('selectedTaxa', selectedTaxa);
-  localStorage.setObject('selectedProteins', selectedProteins);
   window.location.href = window.location.href.split('?')[0]; // Jump to URL without query parameter
 }
 
