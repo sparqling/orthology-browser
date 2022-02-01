@@ -11,7 +11,7 @@ let dbConfig = {
   }
 };
 
-let srcDB = localStorage.getItem('srcDB') || 'orthodb';
+let srcDB = sessionStorage.getItem('srcDB') || localStorage.getItem('srcDB') || 'orthodb';
 let showCellNumber = localStorage.getItem('showCellNumber') === 'true';
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -391,28 +391,25 @@ $(() => {
     renderChart();
   }, true);
 
-  if(localStorage.getItem('h-order'))
-    $('#h-order-select').val(localStorage.getItem('h-order'));
-  if(localStorage.getItem('v-order'))
-    $('#v-order-select').val(localStorage.getItem('v-order'));
-  hOrderedByCellNum = $('#h-order-select').val() === "cell";
-  vOrderedByCellNum = $('#v-order-select').val() === "cell";
+  $('#h-order-select').val(horizontalOrder);
+  $('#v-order-select').val(verticalOrder);
 
   $('#h-order-select').change((e) => {
-    hOrderedByCellNum = e.target.value === "cell";
-    localStorage.setItem('h-order', e.target.value);
+    horizontalOrder = e.target.value;
+    localStorage.setItem('h-order', horizontalOrder);
     UpdateChart();
   });
   
   $('#v-order-select').change((e) => {
-    vOrderedByCellNum = e.target.value === "cell";
-    localStorage.setItem('v-order', e.target.value);
+    verticalOrder = e.target.value;
+    localStorage.setItem('v-order', verticalOrder);
     UpdateChart();
   });
 
 
   $('#database-select').on('change', (e) => {
     srcDB = e.target.value;
+    sessionStorage.setItem('srcDB', srcDB);
     localStorage.setItem('srcDB', srcDB);
     UpdateChart();
   });
