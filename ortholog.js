@@ -1,5 +1,17 @@
 let comparedTaxa = [];
 
+let dbConfig = {
+  orthodb: {
+    query: 'sparql/orthodb.rq',
+    endpoint: 'https://orth.dbcls.jp/sparql-proxy-orthodb'
+  },
+  oma: {
+    query: 'sparql/oma.rq',
+    endpoint: 'https://orth.dbcls.jp/sparql-proxy-oma'
+  }
+};
+
+let srcDB = localStorage.getItem('srcDB') || 'orthodb';
 
 const urlParams = new URLSearchParams(window.location.search);
 let taxaParam = [];
@@ -143,11 +155,14 @@ function UpdateChart() {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
   }
   
-  $('#database-select').on('change', () => {
-    renderChart();
+  $('#database-select').on('change', (e) => {
+    srcDB = e.target.value;
+    localStorage.setItem('srcDB', srcDB);
+    UpdateChart();
   });
+  $('#database-select').val(srcDB);
 
-  queryBySpang("sparql/matrix.rq", {
+  queryBySpang(dbConfig[srcDB].query, {
     taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon.genome_taxid).join(' '),
     proteins: proteins.map((protein) => 'uniprot:' + protein.up_id).join(' ')
   }, (result) => {
@@ -214,7 +229,7 @@ function UpdateChart() {
       
       renderChart();
     },  endpoint);
-  }, "https://orth.dbcls.jp/sparql-proxy-oma");
+  }, dbConfig[srcDB].endpoint);
 }
 
 function constructDummyTree(elemList) {
