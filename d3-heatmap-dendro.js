@@ -26,7 +26,7 @@
     }
   }
   
-  d3.heatmapDendro = function (data, parent, showColTree, showRowTree) {
+  d3.heatmapDendro = function (data, parent, showColTree, showRowTree, showCellNumber) {
     if (!data || !data.matrix)
       return;
 
@@ -42,21 +42,30 @@
 
       for (let n in nodes) {
         if (!nodes[n].children || nodes[n].children.length === 0) {
-          labels.push(nodes[n].name);
+          labels.push(nodes[n]);
         }
       }
       return labels;
     };
     
     let container = document.querySelector(parent);
+    
+    let colNumber = data.matrix[0].length,
+      rowNumber = data.matrix.length;
+    let clusterSpace = 150;
 
-    let clusterSpace = 150, // size of the cluster tree
-      colNumber = data.matrix[0].length,
-      rowNumber = data.matrix.length,
-      width =
-        container.offsetWidth * 0.8 - clusterSpace,
-      height = container.offsetHeight * 0.8 - clusterSpace,
-      rowCluster = d3.layout.cluster()
+    let minimumWidth =
+      container.offsetWidth * 0.8 - clusterSpace,
+      minimumHeight = container.offsetHeight * 0.8 - clusterSpace;
+    
+    let cellWidth = Math.max(minimumWidth / colNumber, 20);
+    let cellHeight = Math.max(minimumHeight / rowNumber, 20);
+    
+    let width = cellWidth * colNumber;
+    let height = cellHeight * rowNumber;
+
+    // size of the cluster tree
+    let rowCluster = d3.layout.cluster()
         .size([height, clusterSpace]).separation(() => 1),
       colCluster = d3.layout.cluster()
         .size([width, clusterSpace]).separation(() => 1),
@@ -64,10 +73,11 @@
       colNodes = colCluster.nodes(data.colJSON),
       rowLabel = labelsFromTree(rowNodes, rowCluster),
       colLabel = labelsFromTree(colNodes, colCluster);
-    let cellWidth = width / colNumber;
-    let cellHeight = height / rowNumber;
     const rowLabelWidth = 150;
     const colLabelHeight = 80;
+    
+    let containerHeight = Math.max(height + clusterSpace + colLabelHeight + 10, 500)
+    container.style.height =  `${containerHeight}px`;
     
     let matrix = [], max = 0;
     for (let r = 0; r < rowNumber; r++) {
@@ -85,7 +95,7 @@
       .enter()
       .append("text")
       .text(function (d) {
-        return truncateString(d, 20);
+        return truncateString(d.name, 20);
       })
       .attr("x", clusterSpace + cellHeight)
       .attr("y", function (d, i) {
@@ -94,7 +104,7 @@
       .style("text-anchor", "end")
       .attr("transform", `translate(${clusterSpace + 6}, ${-cellHeight * 0.3})`)
       .on("mouseover", function (d) {
-        let data = mapNameToTaxa[d];
+        let data = mapNameToTaxa[d.name];
         if (!data)
           return '';
         let tip = "<ui>";
@@ -108,7 +118,8 @@
       .attr("class", function (d, i) {
         return "rowLabel mono r" + i;
       });
-
+    
+    
     let rowImages = svg.append("g")
       .selectAll(".rowLabelg")
       .data(rowLabel)
@@ -119,13 +130,12 @@
         return i * cellHeight + clusterSpace + colLabelHeight + 6;
       })
       .attr("width", cellHeight)
-      .attr("class", "taxon-image")
-      .attr('id', (d) => `row-image-${d}`)
+      .attr("class", (d) => `taxon-image row-image-${mapNameToTaxa[d.name].up_id}`)
       .attr("height", cellHeight)
       .on('mouseover',  function(d, e) {
           if(this.href.animVal !== 'undefined') {
             //Update the tooltip position and value
-            showTooltipImage(d3.event.pageX, d3.event.pageY, d, this.href.animVal);
+            showTooltipImage(d3.event.pageX, d3.event.pageY, d.name, this.href.animVal);
           }
        })
       .on("mouseout", function(){ hideTooltip(this) });
@@ -137,7 +147,7 @@
       .enter()
       .append("text")
       .text(function (d) {
-        return d;
+        return d.name;
       })
       .attr("x", 0)
       .attr("y", function (d, i) {
@@ -146,7 +156,7 @@
       .style("text-anchor", "end")
       .attr("transform", `translate(${-cellWidth / 2}, ${clusterSpace + 6}) rotate(-90)`)
       .on("mouseover", function (d) {
-        let data = mapDisplayedNameToProtein[d];
+        let data = mapDisplayedNameToProtein[d.name];
         let tip = "<ui>";
         for (let [key, val] of Object.entries(data)) {
           tip += `<li>${key}: ${val}</\li>`;
@@ -167,13 +177,13 @@
         return d.row + ":" + d.col;
       })
       .enter()
-      .append("rect")
-      .attr("x", function (d) {
-        return (d.col - 1) * cellWidth + clusterSpace + rowLabelWidth + 10 + cellHeight;
+      .append("g")
+      .attr("transform", function (d, i) {
+        return `translate(${(d.col - 1) * cellWidth + clusterSpace + rowLabelWidth + 10 + cellHeight},
+         ${(d.row - 1) * cellHeight + clusterSpace + colLabelHeight + 10})`;
       })
-      .attr("y", function (d) {
-        return (d.row - 1) * cellHeight + clusterSpace + colLabelHeight + 10;
-      })
+      
+    heatMap.append("rect")
       .attr("class", function (d) {
         return "cell cell-border cr" + (d.row - 1) + " cc" + (d.col - 1);
       })
@@ -193,8 +203,18 @@
         showToolTip(this, tips);
       })
       .on("mouseout", function(){ hideTooltip(this); })
-    ;
     
+    if(showCellNumber) {
+      heatMap
+        .append('text')
+        .attr("x", cellWidth / 2)
+        .attr('y', cellHeight / 2 + 5)
+        .text((d) => d.value ? d.value : '')
+        .attr("class", (d, i) => {
+          return "cell-label r";
+        });
+    }
+
     if(showRowTree) {
       //tree for rows
       let rTree = svg.append("g").attr("class", "rtree")

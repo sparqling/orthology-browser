@@ -1,5 +1,20 @@
 let comparedTaxa = [];
 
+let dbConfig = {
+  orthodb: {
+    query: 'sparql/orthodb.rq',
+    endpoint: 'https://orth.dbcls.jp/sparql-proxy-orthodb'
+  },
+  oma: {
+    query: 'sparql/oma.rq',
+    endpoint: 'https://orth.dbcls.jp/sparql-proxy-oma'
+  }
+};
+
+let srcDB = sessionStorage.getItem('srcDB') || localStorage.getItem('srcDB') || 'orthodb';
+let showCellNumber = localStorage.getItem('showCellNumber') === 'true';
+let horizontalOrder = localStorage.getItem('h-order') || 'tree';
+let verticalOrder = localStorage.getItem('v-order') || 'tree';
 
 const urlParams = new URLSearchParams(window.location.search);
 let taxaParam = [];
@@ -12,26 +27,27 @@ for(let entry of urlParams.entries()) {
   }
 }
 
-if(taxaParam.length > 0 && proteinsParam.length > 0) {
-  selectedTaxa = {};
-  for(let taxonUPId of taxaParam) {
-    selectedTaxa[taxonUPId] = null;
+if(taxaParam.length > 0 || proteinsParam.length > 0) {
+  if(taxaParam.length > 0) {
+    selectedTaxa = {};
+    for (let taxonUPId of taxaParam) {
+      selectedTaxa[taxonUPId] = null;
+    }
+    localStorage.setObject('selectedTaxa', selectedTaxa);
   }
-  selectedProteins = {};
-  for(let proteinUPId of proteinsParam) {
-    selectedProteins[proteinUPId] = null;
+  if(proteinsParam.length > 0) {
+    selectedProteins = {};
+    for (let proteinUPId of proteinsParam) {
+      selectedProteins[proteinUPId] = null;
+    }
+    localStorage.setObject('selectedProteins', selectedProteins);
   }
-  localStorage.setObject('selectedTaxa', selectedTaxa);
-  localStorage.setObject('selectedProteins', selectedProteins);
   window.location.href = window.location.href.split('?')[0]; // Jump to URL without query parameter
 }
 
 selectedTaxa = localStorage.getObject('selectedTaxa') || {};
 selectedProteins = localStorage.getObject('selectedProteins') || {};
 
-
-let hOrderedByCellNum = false;
-let vOrderedByCellNum = false;
 
 let baseTaxon = {
   genome_taxid: "9606",
@@ -81,14 +97,14 @@ function UpdateChart() {
   mapTaxIdToTaxa = {};
   comparedTaxa = Object.values(selectedTaxa);
   for(let taxon of comparedTaxa) {
-    mapNameToTaxa[taxon.displayedName] = taxon;
-    mapTaxIdToTaxa[taxon.genome_taxid] = taxon;
     if(taxon.organism_name.includes("(")) {
       let matched = taxon.organism_name.match(/^[^\(]+\(([^\)]+)\)/);
       if(matched)
         taxon.displayedName = matched[1];
     }
     taxon.displayedName = taxon.displayedName || taxon.organism_name;
+    mapNameToTaxa[taxon.displayedName] = taxon;
+    mapTaxIdToTaxa[taxon.genome_taxid] = taxon;
   }
 
 
@@ -113,7 +129,7 @@ function UpdateChart() {
   proteins.sort((protein1, protein2) => protein1.mnemonic < protein2.mnemonic ? -1 : 1);
 
   show_proteins();
-  show_genomes();
+  show_genomes([baseTaxon].concat(comparedTaxa));
   
   if(proteins.length === 0 || comparedTaxa.length === 0) {
     $('#loader-container').hide();
@@ -138,12 +154,8 @@ function UpdateChart() {
   function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
   }
-  
-  $('#database-select').on('change', () => {
-    renderChart();
-  });
 
-  queryBySpang("sparql/matrix.rq", {
+  queryBySpang(dbConfig[srcDB].query, {
     taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon.genome_taxid).join(' '),
     proteins: proteins.map((protein) => 'uniprot:' + protein.up_id).join(' ')
   }, (result) => {
@@ -199,9 +211,6 @@ function UpdateChart() {
     }
 
     series.sort((row1, row2) => row1.cellNum < row2.cellNum || (row1.cellNum == row2.cellNum) && row1.sum < row2.sum ? 1 : -1);
-    let columnVectors = [];
-    for(let i = 0; i < series[0].data.length; i++)
-      columnVectors.push(series.map(elem => elem.data[i].y));
     
     queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
       [taxonTree, humanNode] = constructTree(res.results);
@@ -210,7 +219,7 @@ function UpdateChart() {
       
       renderChart();
     },  endpoint);
-  }, "https://orth.dbcls.jp/sparql-proxy-oma");
+  }, dbConfig[srcDB].endpoint);
 }
 
 function constructDummyTree(elemList) {
@@ -250,6 +259,7 @@ function constructTree(result) {
     if(!nodeMap[parentId])
       nodeMap[parentId] = {
         id: parentId,
+        up_id: row.up_id,
         name: row.parent_label.value,
         children: [],
         parent: null
@@ -258,6 +268,7 @@ function constructTree(result) {
     if(!nodeMap[childId])
       nodeMap[childId] = {
         id: childId,
+        up_id: row.up_id,
         name: mapTaxIdToTaxa[childId]?.displayedName,
         children: [],
         parent: null
@@ -335,9 +346,14 @@ function renderChart() {
     });
   }
   let dataForD3 = {};
-  columnVectors.sort((col1, col2) => col1.cellNum < col2.cellNum || (col1.cellNum == col2.cellNum) && col1.sum < col2.sum ? 1 : -1);
+  if(horizontalOrder === 'cell') {
+    columnVectors.sort((col1, col2) => col1.cellNum < col2.cellNum || (col1.cellNum == col2.cellNum) && col1.sum < col2.sum ? 1 : -1);
+  }
+  else if(horizontalOrder === 'alpha')  {
+    columnVectors.sort((col1, col2) => col1.name > col2.name ? 1 : -1);
+  }
 
-  if(hOrderedByCellNum) {
+  if(horizontalOrder !== 'tree') {
     dataForD3.colJSON = constructDummyTree(columnVectors);
   } else {
     let cluster = hcluster().distance('euclidean').linkage('avg').posKey('val').data(columnVectors);
@@ -345,7 +361,7 @@ function renderChart() {
   }
   let orderedProteins = orderedLeaves(dataForD3.colJSON);
 
-  if(vOrderedByCellNum) {
+  if(verticalOrder !== 'tree') {
     dataForD3.rowJSON = constructDummyTree(series);
   } else {
     dataForD3.rowJSON = taxonTree;
@@ -366,7 +382,7 @@ function renderChart() {
   });
   dataForD3.matrix = matrix;
   
-  d3.heatmapDendro(dataForD3, "#heatmap", !hOrderedByCellNum, !vOrderedByCellNum);
+  d3.heatmapDendro(dataForD3, "#heatmap", horizontalOrder === 'tree', verticalOrder === 'tree', showCellNumber);
   showDbpediaImage(comparedTaxa);
   showDbpediaImage([baseTaxon]);
 }
@@ -378,25 +394,35 @@ $(() => {
     renderChart();
   }, true);
 
-  if(localStorage.getItem('h-order'))
-    $('#h-order-select').val(localStorage.getItem('h-order'));
-  if(localStorage.getItem('v-order'))
-    $('#v-order-select').val(localStorage.getItem('v-order'));
-  hOrderedByCellNum = $('#h-order-select').val() === "cell";
-  vOrderedByCellNum = $('#v-order-select').val() === "cell";
+  $('#h-order-select').val(horizontalOrder);
+  $('#v-order-select').val(verticalOrder);
 
   $('#h-order-select').change((e) => {
-    hOrderedByCellNum = e.target.value === "cell";
-    localStorage.setItem('h-order', e.target.value);
+    horizontalOrder = e.target.value;
+    localStorage.setItem('h-order', horizontalOrder);
     UpdateChart();
   });
   
   $('#v-order-select').change((e) => {
-    vOrderedByCellNum = e.target.value === "cell";
-    localStorage.setItem('v-order', e.target.value);
+    verticalOrder = e.target.value;
+    localStorage.setItem('v-order', verticalOrder);
     UpdateChart();
   });
 
+
+  $('#database-select').on('change', (e) => {
+    srcDB = e.target.value;
+    sessionStorage.setItem('srcDB', srcDB);
+    localStorage.setItem('srcDB', srcDB);
+    UpdateChart();
+  }).val(srcDB);
+
+
+  $('#cell-label-checkbox').on('change', (e) => {
+    showCellNumber = e.target.checked;
+    localStorage.setItem('showCellNumber', showCellNumber);
+    renderChart();
+  }).prop('checked', showCellNumber);
 
   $('#share-btn').click((e) => {
     let url = window.location.href.split('?')[0];
@@ -510,63 +536,6 @@ $(function() {
 
 
 
-function show_genomes() {
-  let genomes = [baseTaxon].concat(comparedTaxa);
-  let total = 0;
-  let html = '<thead><tr>' +
-    '<th align="center"><input type="checkbox" class="add_genome_all" checked title="Select all"></th>' +
-    '<th>Ref</th>' +
-    '<th>Image</th>' +
-    // '<th>Rep</th>' +
-    '<th>Proteome ID</th>' +
-    '<th>Genome ID</th>' +
-    '<th>Tax ID</th>' +
-    '<th>Species Name</th>' +
-    '<th>Genes</th>' +
-    '<th>Isoforms</th>' +
-    '<th>CPD <a href="https://uniprot.org/help/assessing_proteomes" target="_blank">*</a></th>' +
-    '<th>BUSCO</th>' +
-    '<th class="thin">single</th>' +
-    '<th class="thin">dupli.</th>' +
-    '<th class="thin">frag.</th>' +
-    '<th class="thin">miss.</th>' +
-    '</tr></thead>';
-
-
-  for(let genome of genomes) {
-    html += '<tr>' + get_taxon_table_row(genome) + '</tr>';
-  }
-  html += '';
-
-  $('#selected-proteomes').html(html)
-
-  for (let i = 0; i < $('.add_genome').length; i++) {
-    let each_checkbox = $('.add_genome').eq(i);
-    each_checkbox.prop("checked", true);
-  }
-
-  $(function() {
-    $.tablesorter.addParser({
-      id: "fancyNumber",
-      is: function(s) {
-        return /^[0-9]?[0-9,\.]*$/.test(s);
-      },
-      format: function(s) {
-        return $.tablesorter.formatFloat(s.replace(/,/g, ''));
-      },
-      type: "numeric"
-    });
-    $('#selected-proteomes').tablesorter(
-      {
-        headers: {
-          0: {sorter:false},
-          7: {sorter:'fancyNumber'},
-          8: {sorter:'fancyNumber'},
-        }
-      }
-    );
-  });
-}
 
 
 $(function() {

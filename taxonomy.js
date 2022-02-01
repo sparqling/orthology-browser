@@ -127,6 +127,7 @@ $(function () {
     localStorage.setObject('selectedTaxa', selectedTaxa);
     // Draw table
     updateSelectedCount();
+    show_genomes(Object.values(selectedTaxa));
   });
 
   $(document).on('click', '.add_genome_all', function () {
@@ -151,6 +152,7 @@ $(function () {
     localStorage.setObject('selectedTaxa', selectedTaxa);
     // Draw table
     updateSelectedCount();
+    show_genomes(Object.values(selectedTaxa));
   });
 });
 
@@ -532,54 +534,16 @@ function show_specific_genes(taxid) {
 }
 
 function show_genomes_table(genomes, count_html) {
-  let list_html = '';
-  let count_reference = 0;
-  for (let genome of genomes) {
-    list_html += get_taxon_table_row(genome);
-    if (genome.types.match(/Reference_Proteome/)) {
-      count_reference++;
-    }
-  }
-
-  let list_header = '<thead><tr>' +
-    '<th align="center"><input type="checkbox" class="add_genome_all" title="Select all"></th>' +
-    '<th>Ref</th>' +
-    '<th>Image</th>' +
-    '<th style="min-width: 6em">Proteome ID</th>' +
-    '<th>Genome ID</th>' +
-    '<th style="min-width: 3em">Tax ID</th>' +
-    '<th>Species Name</th>' +
-    '<th>Genes</th>' +
-    '<th>Isoforms</th>' +
-    '<th>CPD <a href="https://uniprot.org/help/assessing_proteomes" target="_blank">*</a></th>' +
-    '<th>BUSCO</th>' +
-    '<th class="thin">single</th>' +
-    '<th class="thin">dupli.</th>' +
-    '<th class="thin">frag.</th>' +
-    '<th class="thin">miss.</th>' +
-    '</tr></thead>';
-
-
-  $('#details_div').html(count_html +
-    '<table id="details" class="table tablesorter">' + list_header + list_html + '</table>');
-
-  $('#details').tablesorter({
-    headers: {
-      0: {sorter: false},
-      6: {sorter: 'fancyNumber'},
-      7: {sorter: 'fancyNumber'}
-    },
+  show_genomes(Object.values(selectedTaxa));
+  show_genomes(Object.values(genomes), "#details", {
     widgetOptions : {
       filter_columnFilters: false,
       filter_external: '#detail-filter',
     },
     widgets: ["filter"],
   });
-
-  let detailTable = $('#details');
-  $.tablesorter.clearTableBody(detailTable[0]);
-  detailTable.append(list_html).trigger('update');
-
+  $('#counter_div').html(count_html);
+  
   showDbpediaImage(genomes);
 }
 

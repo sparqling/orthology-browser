@@ -67,17 +67,18 @@ function dbpedia_uri(taxonName) {
 
 function showDbpediaImage(taxa) {
   taxa.forEach((taxon) => {
-    if(mapTaxIdToThumbnail[taxon.genome_taxid] !== undefined) {
-      document.getElementById(`row-image-${taxon.displayedName}`)?.setAttribute('href', mapTaxIdToThumbnail[taxon.genome_taxid]);
-      document.getElementById(`image-${taxon.up_id}`)?.setAttribute('src', mapTaxIdToThumbnail[taxon.genome_taxid]);
+    let cache = mapTaxIdToThumbnail[taxon.genome_taxid];
+    if(cache !== undefined) {
+      $(`.row-image-${taxon.up_id}`).each(function() { this.setAttribute('href', cache) });
+      $(`.image-${taxon.up_id}`).prop('src', cache);
     } else {
       queryBySpang(`sparql/dbpedia_thumbnails.rq`, {
           taxon: dbpedia_uri(taxon.organism_name),
         }, (res) => {
           let thumbnailUri = res.results.bindings[0]?.image.value;
           if(thumbnailUri) {
-            document.getElementById(`row-image-${taxon.displayedName}`)?.setAttribute('href', thumbnailUri);
-            document.getElementById(`image-${taxon.up_id}`)?.setAttribute('src', thumbnailUri);
+            $(`.row-image-${taxon.up_id}`).each(function() { this.setAttribute('href', thumbnailUri) });
+            $(`.image-${taxon.up_id}`).prop('src', thumbnailUri);
           }
           mapTaxIdToThumbnail[taxon.genome_taxid] = thumbnailUri ?? '';
         }, dbpedia_endpoint
@@ -125,3 +126,15 @@ function updateSelectedCount() {
   $("#selected-proteome-label").html(`<b>${Object.keys(selectedTaxa).length}</b> proteomes`);
   $("#selected-protein-label").html(`<b>${Object.keys(selectedProteins).length}</b> proteins`);
 }
+
+
+$.tablesorter.addParser({
+  id: "fancyNumber",
+  is: function(s) {
+    return /^[0-9]?[0-9,\.]*$/.test(s);
+  },
+  format: function(s) {
+    return $.tablesorter.formatFloat(s.replace(/,/g, ''));
+  },
+  type: "numeric"
+});

@@ -21,7 +21,6 @@
   <script src="util.js"></script>
   <script src="get_table_row.js"></script>
   <script src="ortholog.js"></script>
-  <script src="go.js"></script>
   <style>
 
       rect.selection {
@@ -50,6 +49,14 @@
           font-size: 9pt;
           font-family: Consolas, courier;
           fill: #aaa;
+      }
+
+      text.cell-label {
+          font-size: 10pt;
+          font-family: Consolas, courier;
+          text-anchor: middle;
+          text-align: center;
+          fill: white;
       }
 
       .rlink, .clink {
@@ -92,6 +99,13 @@
       <label id="selected-protein-label">
       </label>
     </span>
+
+    <div>
+        <a href="https://github.com/sparqling/orthology-browser" target="_blank" rel="noopener noreferrer">
+            <img src="img/GitHub-Mark-Light-32px.png">
+        </a>
+    </div>
+
   </div>
 </nav>
 
@@ -101,24 +115,29 @@
 
     <label for="database-select">Source Database: </label>
     <select style="margin-left: 10px;" id="database-select">
-      <option>OMA</option>
-      <option>Ortho DB</option>
-      <option>Meta Prediction</option>
+      <option value="oma">OMA</option>
+      <option value="orthodb">Ortho DB</option>
+<!--      <option>Meta Prediction</option>-->
     </select>
     <label for="h-order-select" style="margin-left: 2.5em">Horizontal Order: </label>
     <select style="margin-left: 10px;" id="h-order-select">
       <option value="tree">Cluster by similarity (tree)</option>
       <option value="cell">Number of cells</option>
+      <option value="alpha">Alphabetical order</option>
     </select>
-    <label for="v-order-select" style="margin-left: 2.5em">Vertical Order: </label>
-    <select style="margin-left: 10px;" id="v-order-select">
-      <option value="tree">Taxon tree</option>
-      <option value="cell">Number of cells</option>
-    </select>
+
+    <label for="cell-label-checkbox" style="margin-left: 2.5em">Show number: </label>
+    <input type="checkbox" id="cell-label-checkbox">
     <button type="button" class="btn" style="margin-left: 100px; display: inline; width: 80px; height: 25px"
             id="share-btn">Share
     </button>
     <br>
+    <br>
+    <label for="v-order-select">Vertical Order: </label>
+    <select style="margin-left: 10px;" id="v-order-select">
+      <option value="tree">Taxon tree</option>
+      <option value="cell">Number of cells</option>
+    </select>
     <br>
 
     <div id="loader-container" style="width: 100%; height: 500px; text-align: center;">
@@ -140,8 +159,6 @@
       <table id="selected-proteins" class="tablesorter table"></table>
     </div>
     <hr>
-
-
   </div>
 </div>
 
