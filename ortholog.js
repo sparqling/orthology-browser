@@ -19,9 +19,9 @@ if(taxaParam.length > 0 || proteinsParam.length > 0) {
       selectedTaxa[taxonUPId] = null;
     }
     localStorage.setObject('selectedTaxa', selectedTaxa);
-    selectedProteins = {};
   }
   if(proteinsParam.length > 0) {
+    selectedProteins = {};
     for (let proteinUPId of proteinsParam) {
       selectedProteins[proteinUPId] = null;
     }
