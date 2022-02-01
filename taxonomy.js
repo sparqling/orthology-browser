@@ -3,8 +3,8 @@ let currentTaxonName = null;
 let scientificNameMap = {}; // Display name => Scientific name
 let displayNameMap = {}; // Scientific name => Display name
 let currentGenomeMap = {};
-const sparqlDir = '/sparql/taxonomy';
-const commonSparqlDir = '/sparql/';
+const sparqlDir = 'sparql/taxonomy';
+const commonSparqlDir = 'sparql/';
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
