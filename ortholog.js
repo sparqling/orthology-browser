@@ -154,13 +154,6 @@ function UpdateChart() {
   function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
   }
-  
-  $('#database-select').on('change', (e) => {
-    srcDB = e.target.value;
-    localStorage.setItem('srcDB', srcDB);
-    UpdateChart();
-  });
-  $('#database-select').val(srcDB);
 
   queryBySpang(dbConfig[srcDB].query, {
     taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon.genome_taxid).join(' '),
@@ -415,6 +408,14 @@ $(() => {
     localStorage.setItem('v-order', e.target.value);
     UpdateChart();
   });
+
+
+  $('#database-select').on('change', (e) => {
+    srcDB = e.target.value;
+    localStorage.setItem('srcDB', srcDB);
+    UpdateChart();
+  });
+  $('#database-select').val(srcDB);
 
 
   $('#share-btn').click((e) => {
