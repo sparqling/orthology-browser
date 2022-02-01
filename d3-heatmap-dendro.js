@@ -42,7 +42,7 @@
 
       for (let n in nodes) {
         if (!nodes[n].children || nodes[n].children.length === 0) {
-          labels.push(nodes[n].name);
+          labels.push(nodes[n]);
         }
       }
       return labels;
@@ -95,7 +95,7 @@
       .enter()
       .append("text")
       .text(function (d) {
-        return truncateString(d, 20);
+        return truncateString(d.name, 20);
       })
       .attr("x", clusterSpace + cellHeight)
       .attr("y", function (d, i) {
@@ -104,7 +104,7 @@
       .style("text-anchor", "end")
       .attr("transform", `translate(${clusterSpace + 6}, ${-cellHeight * 0.3})`)
       .on("mouseover", function (d) {
-        let data = mapNameToTaxa[d];
+        let data = mapNameToTaxa[d.name];
         if (!data)
           return '';
         let tip = "<ui>";
@@ -118,7 +118,8 @@
       .attr("class", function (d, i) {
         return "rowLabel mono r" + i;
       });
-
+    
+    
     let rowImages = svg.append("g")
       .selectAll(".rowLabelg")
       .data(rowLabel)
@@ -129,13 +130,12 @@
         return i * cellHeight + clusterSpace + colLabelHeight + 6;
       })
       .attr("width", cellHeight)
-      .attr("class", "taxon-image")
-      .attr('id', (d) => `row-image-${d}`)
+      .attr("class", (d) => `taxon-image row-image-${mapNameToTaxa[d.name].up_id}`)
       .attr("height", cellHeight)
       .on('mouseover',  function(d, e) {
           if(this.href.animVal !== 'undefined') {
             //Update the tooltip position and value
-            showTooltipImage(d3.event.pageX, d3.event.pageY, d, this.href.animVal);
+            showTooltipImage(d3.event.pageX, d3.event.pageY, d.name, this.href.animVal);
           }
        })
       .on("mouseout", function(){ hideTooltip(this) });
@@ -147,7 +147,7 @@
       .enter()
       .append("text")
       .text(function (d) {
-        return d;
+        return d.name;
       })
       .attr("x", 0)
       .attr("y", function (d, i) {
@@ -156,7 +156,7 @@
       .style("text-anchor", "end")
       .attr("transform", `translate(${-cellWidth / 2}, ${clusterSpace + 6}) rotate(-90)`)
       .on("mouseover", function (d) {
-        let data = mapDisplayedNameToProtein[d];
+        let data = mapDisplayedNameToProtein[d.name];
         let tip = "<ui>";
         for (let [key, val] of Object.entries(data)) {
           tip += `<li>${key}: ${val}</\li>`;

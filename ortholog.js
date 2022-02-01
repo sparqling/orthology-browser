@@ -129,7 +129,7 @@ function UpdateChart() {
   proteins.sort((protein1, protein2) => protein1.mnemonic < protein2.mnemonic ? -1 : 1);
 
   show_proteins();
-  show_genomes();
+  show_genomes([baseTaxon].concat(comparedTaxa));
   
   if(proteins.length === 0 || comparedTaxa.length === 0) {
     $('#loader-container').hide();
@@ -259,6 +259,7 @@ function constructTree(result) {
     if(!nodeMap[parentId])
       nodeMap[parentId] = {
         id: parentId,
+        up_id: row.up_id,
         name: row.parent_label.value,
         children: [],
         parent: null
@@ -267,6 +268,7 @@ function constructTree(result) {
     if(!nodeMap[childId])
       nodeMap[childId] = {
         id: childId,
+        up_id: row.up_id,
         name: mapTaxIdToTaxa[childId]?.displayedName,
         children: [],
         parent: null
@@ -413,15 +415,14 @@ $(() => {
     sessionStorage.setItem('srcDB', srcDB);
     localStorage.setItem('srcDB', srcDB);
     UpdateChart();
-  });
-  $('#database-select').val(srcDB);
+  }).val(srcDB);
 
 
   $('#cell-label-checkbox').on('change', (e) => {
     showCellNumber = e.target.checked;
     localStorage.setItem('showCellNumber', showCellNumber);
     renderChart();
-  }).val(showCellNumber);
+  }).prop('checked', showCellNumber);
 
   $('#share-btn').click((e) => {
     let url = window.location.href.split('?')[0];
@@ -535,63 +536,6 @@ $(function() {
 
 
 
-function show_genomes() {
-  let genomes = [baseTaxon].concat(comparedTaxa);
-  let total = 0;
-  let html = '<thead><tr>' +
-    '<th align="center"><input type="checkbox" class="add_genome_all" checked title="Select all"></th>' +
-    '<th>Ref</th>' +
-    '<th>Image</th>' +
-    // '<th>Rep</th>' +
-    '<th>Proteome ID</th>' +
-    '<th>Genome ID</th>' +
-    '<th>Tax ID</th>' +
-    '<th>Species Name</th>' +
-    '<th>Genes</th>' +
-    '<th>Isoforms</th>' +
-    '<th>CPD <a href="https://uniprot.org/help/assessing_proteomes" target="_blank">*</a></th>' +
-    '<th>BUSCO</th>' +
-    '<th class="thin">single</th>' +
-    '<th class="thin">dupli.</th>' +
-    '<th class="thin">frag.</th>' +
-    '<th class="thin">miss.</th>' +
-    '</tr></thead>';
-
-
-  for(let genome of genomes) {
-    html += '<tr>' + get_taxon_table_row(genome) + '</tr>';
-  }
-  html += '';
-
-  $('#selected-proteomes').html(html)
-
-  for (let i = 0; i < $('.add_genome').length; i++) {
-    let each_checkbox = $('.add_genome').eq(i);
-    each_checkbox.prop("checked", true);
-  }
-
-  $(function() {
-    $.tablesorter.addParser({
-      id: "fancyNumber",
-      is: function(s) {
-        return /^[0-9]?[0-9,\.]*$/.test(s);
-      },
-      format: function(s) {
-        return $.tablesorter.formatFloat(s.replace(/,/g, ''));
-      },
-      type: "numeric"
-    });
-    $('#selected-proteomes').tablesorter(
-      {
-        headers: {
-          0: {sorter:false},
-          7: {sorter:'fancyNumber'},
-          8: {sorter:'fancyNumber'},
-        }
-      }
-    );
-  });
-}
 
 
 $(function() {
