@@ -97,14 +97,14 @@ function UpdateChart() {
   mapTaxIdToTaxa = {};
   comparedTaxa = Object.values(selectedTaxa);
   for(let taxon of comparedTaxa) {
-    mapNameToTaxa[taxon.displayedName] = taxon;
-    mapTaxIdToTaxa[taxon.genome_taxid] = taxon;
     if(taxon.organism_name.includes("(")) {
       let matched = taxon.organism_name.match(/^[^\(]+\(([^\)]+)\)/);
       if(matched)
         taxon.displayedName = matched[1];
     }
     taxon.displayedName = taxon.displayedName || taxon.organism_name;
+    mapNameToTaxa[taxon.displayedName] = taxon;
+    mapTaxIdToTaxa[taxon.genome_taxid] = taxon;
   }
 
 

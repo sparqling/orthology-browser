@@ -208,7 +208,7 @@
       heatMap
         .append('text')
         .attr("x", cellWidth / 2)
-        .attr('y', cellHeight - 5)
+        .attr('y', cellHeight / 2 + 5)
         .text((d) => d.value ? d.value : '')
         .attr("class", (d, i) => {
           return "cell-label r";
