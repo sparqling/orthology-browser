@@ -483,6 +483,7 @@ $(() => {
         };
         selectedTaxa[entry.up_id] = entry;
       }
+      localStorage.setObject('selectedTaxa', selectedTaxa);
 
       queryBySpang(`sparql/goid_to_search_proteins.rq`,
         { values: Object.keys(selectedProteins).filter(up_id => !selectedProteins[up_id]).map((id) => `(uniprot:${id})`).join(' ') },
@@ -505,6 +506,7 @@ $(() => {
             };
             selectedProteins[up_id] = entry;
           }
+          localStorage.setObject('selectedProteins', selectedProteins);
           UpdateChart();
         }
       );
