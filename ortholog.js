@@ -13,21 +13,32 @@ let dbConfig = {
 
 let srcDB = sessionStorage.getItem('srcDB') || localStorage.getItem('srcDB') || 'orthodb';
 let showCellNumber = localStorage.getItem('showCellNumber') === 'true';
-let horizontalOrder = localStorage.getItem('h-order') || 'tree';
-let verticalOrder = localStorage.getItem('v-order') || 'tree';
+let horizontalOrder = localStorage.getItem('horizontalOrder') || 'tree';
+let verticalOrder = localStorage.getItem('verticalOrder') || 'tree';
 
 const urlParams = new URLSearchParams(window.location.search);
 let taxaParam = [];
 let proteinsParam = [];
+let paramCount = 0;
 for(let entry of urlParams.entries()) {
   if(entry[0].startsWith('taxaUPIds')) {
     taxaParam.push(entry[1]); 
   } else if(entry[0].startsWith('proteinUPIds')) {
     proteinsParam.push(entry[1]);
   }
+  if(entry[0] === 'srcDB') {
+    sessionStorage.setItem('srcDB', entry[1]);
+  }
+  for(let name of ['srcDB', 'showCellNumber', 'horizontalOrder', 'verticalOrder']) {
+    if(entry[0] === name) {
+      localStorage.setItem(name, entry[1]);
+      break;
+    }
+  }
+  ++paramCount;
 }
 
-if(taxaParam.length > 0 || proteinsParam.length > 0) {
+if(paramCount > 0) {
   if(taxaParam.length > 0) {
     selectedTaxa = {};
     for (let taxonUPId of taxaParam) {
@@ -399,13 +410,13 @@ $(() => {
 
   $('#h-order-select').change((e) => {
     horizontalOrder = e.target.value;
-    localStorage.setItem('h-order', horizontalOrder);
+    localStorage.setItem('horizontalOrder', horizontalOrder);
     UpdateChart();
   });
   
   $('#v-order-select').change((e) => {
     verticalOrder = e.target.value;
-    localStorage.setItem('v-order', verticalOrder);
+    localStorage.setItem('verticalOrder', verticalOrder);
     UpdateChart();
   });
 
@@ -431,6 +442,10 @@ $(() => {
       url += Object.keys(selectedTaxa).map(upId => `taxaUPIds[]=${upId}`).join('&');
       url += '&';
       url += Object.keys(selectedProteins).map(upId => `proteinUPIds[]=${upId}`).join('&');
+      url += `&srcDB=${srcDB}`;
+      url += `&showCellNumber=${showCellNumber}`;
+      url += `&horizontalOrder=${horizontalOrder}`;
+      url += `&verticalOrder=${verticalOrder}`;
       if(url.length > 7333) {
         alert("The content is too large for sharing via URI (Current: " + url.length + " / Max: 7333).");
       } else {

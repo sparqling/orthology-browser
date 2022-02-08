@@ -104,8 +104,8 @@ $(document).on('click', '#clear-btn', (e) => {
     sessionStorage.removeItem('srcDB')
     localStorage.removeItem('srcDB');
     localStorage.removeItem('showCellNumber');
-    localStorage.removeItem('h-order');
-    localStorage.removeItem('v-order');
+    localStorage.removeItem('horizontalOrder');
+    localStorage.removeItem('verticalOrder');
     localStorage.removeItem('selectedTaxa');
     window.location.reload();
   }
