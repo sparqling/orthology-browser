@@ -126,15 +126,15 @@ $(function () {
     }
     localStorage.setObject('selectedTaxa', selectedTaxa);
     // Draw table
-    updateSelectedCount();
-    show_genomes(Object.values(selectedTaxa));
+    updateSelected();
   });
 
   $(document).on('click', '.add_genome_all', function () {
     // Swith the icon
     let selected = $(this).prop("checked");
+    let table = $(this).closest('table');
 
-    $('.add_genome').each((i, each_checkbox) => {
+    $('.add_genome', table).each((i, each_checkbox) => {
       let each_row = $(each_checkbox).closest('tr');
       // Eech item
       let proteome_id = each_row.find('td.proteome-id-td').text();
@@ -151,8 +151,7 @@ $(function () {
     });
     localStorage.setObject('selectedTaxa', selectedTaxa);
     // Draw table
-    updateSelectedCount();
-    show_genomes(Object.values(selectedTaxa));
+    updateSelected();
   });
 });
 
@@ -193,7 +192,7 @@ function show_contents(taxon_name, display_name = null, push_state = true) {
     show_specific_genes(taxid);
     show_genome_list(rank, taxon_name, taxid, genome_type);
     $('#details').attr('border', '1');
-    updateSelectedCount();
+    updateSelected();
     // Show main taxon name
     let html = `<h3><i>${taxon_name}</i> (Taxonomy ID: ${taxid})</h3>`;
     $('#main_taxon_name_div').html(html);
@@ -533,9 +532,16 @@ function show_specific_genes(taxid) {
   });
 }
 
+function updateSelected() {
+  updateSelectedCount();
+  let taxonList =  Object.values(selectedTaxa);
+  $('#proteome-counter')[0].innerHTML = `You selected <b>${taxonList.length}</b> proteomes`;
+  show_genomes(taxonList);
+  showDbpediaImage(taxonList);
+}
+
 function show_genomes_table(genomes, count_html) {
-  show_genomes(Object.values(selectedTaxa));
-  show_genomes(Object.values(genomes), "#details", {
+  show_genomes(Object.values(genomes), false, "#details", {
     widgetOptions : {
       filter_columnFilters: false,
       filter_external: '#detail-filter',

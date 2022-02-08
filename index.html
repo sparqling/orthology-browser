@@ -89,17 +89,24 @@
       </li>
     </ul>
 
+    <button type="button" class="btn" style="margin-left: 100px; display: inline; width: 80px; height: 25px"
+            id="share-btn">Share
+    </button>
+
     <span class="text-white mx-3">
       You selected:
     </span>
-    <span class="text-white mx-3">
+    <span class="text-white ml-3">
       <label id="selected-proteome-label">
       </label>
       <br>
       <label id="selected-protein-label">
       </label>
     </span>
-
+    <button type="button" class="btn btn-danger mx-3" style="width: 80px; height: 25px"
+            id="clear-btn">Clear
+    </button>
+    
     <div>
         <a href="https://github.com/sparqling/orthology-browser" target="_blank" rel="noopener noreferrer">
             <img src="img/GitHub-Mark-Light-32px.png">
@@ -128,9 +135,6 @@
 
     <label for="cell-label-checkbox" style="margin-left: 2.5em">Show number: </label>
     <input type="checkbox" id="cell-label-checkbox">
-    <button type="button" class="btn" style="margin-left: 100px; display: inline; width: 80px; height: 25px"
-            id="share-btn">Share
-    </button>
     <br>
     <br>
     <label for="v-order-select">Vertical Order: </label>

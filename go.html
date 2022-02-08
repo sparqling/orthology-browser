@@ -54,6 +54,14 @@
               <label id="selected-protein-label">
               </label>
             </span>
+    <button type="button" class="btn btn-danger mx-3" style="width: 80px; height: 25px"
+            id="clear-btn">Clear
+    </button>
+    <div>
+      <a href="https://github.com/sparqling/orthology-browser" target="_blank" rel="noopener noreferrer">
+        <img src="img/GitHub-Mark-Light-32px.png">
+      </a>
+    </div>
   </div>
 </nav>
 <div id="main-area">
@@ -110,8 +118,14 @@
   
       <!-- Main table -->
       <div id="counter_div"></div>
-      <div id="details_div">
-      </div>
+      <table class="tablesorter table" id="details">
+      </table>
+    </div>
+
+    <div class="ui-widget my-3">
+      <!-- List of proteins -->
+      <div id="protein-counter"></div>
+      <table id="selected-proteins" class="tablesorter table"></table>
     </div>
   </div>
 </div>
@@ -137,6 +151,7 @@
     }
 
     load_url_state();
+    updateSelected();
   });
 
 </script>

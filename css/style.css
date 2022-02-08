@@ -120,6 +120,11 @@ table.tablesorter thead tr .tablesorter-headerDesc {
     cursor: pointer;
 }
 
+.btn-danger {
+    background: -moz-linear-gradient(top, #c93a40 0%, #a92a30);
+    background: -webkit-gradient(linear, left top, left bottom, from(#c93a40), to(#a92a30));
+}
+
 button {
     width: auto;
     padding: 0;

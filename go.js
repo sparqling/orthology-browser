@@ -170,13 +170,14 @@ $(function () {
     }
     localStorage.setObject('selectedProteins', selectedProteins);
 
-    updateSelectedCount();
+    updateSelected();
   });
 
   $(document).on('click', '.add_protein_all', function () {
     // Swith the icon
     let selected = $(this).prop("checked");
-    $('.add_protein').each((i, each_checkbox) => {
+    let table = $(this).closest('table');
+    $('.add_protein', table).each((i, each_checkbox) => {
       let each_row = $(each_checkbox).closest('tr');
       // Eech item
       let protein_id = each_row.find('td.protein-id-td').text();
@@ -192,7 +193,7 @@ $(function () {
       }
     });
     localStorage.setObject('selectedProteins', selectedProteins);
-    updateSelectedCount();
+    updateSelected();
   });
 });
 
@@ -502,39 +503,15 @@ function show_dbpedia(taxon_name, goid, local_lang) {
 
 
 function show_proteins_table(proteins, count_html) {
-  let list_html = '';
-  for (let protein of proteins) {
-    list_html += get_go_table_row(protein);
-  }
-
-  let list_header = '<thead><tr>' +
-    '<th style="width: 1.5em;"align="center"><input type="checkbox" class="add_protein_all" title="Select all"></th>' +
-    '<th style="width: 7em;">Uniprot ID</th>' +
-    '<th style="width: 9em;">Mnemonic</th>' +
-    '<th>Full name</th>' +
-    '<th style="width: 9em;">Map</th>' +
-    '</tr></thead>';
-
-  $('#details_div').html(count_html +
-    '</div><table id="details" class="table tablesorter">' + list_header + list_html + '</table>');
-
-  $('#details').tablesorter({
-    headers: {
-      0: {sorter: false},
-    },
+  show_proteins(proteins, false, "#details", true, {
     widgetOptions : {
       filter_columnFilters: false,
       filter_external: '#detail-filter',
-      output: '{startRow} – {endRow} / {totalRows} rows',
     },
     widgets: ["filter"],
-  }).tablesorterPager({container: '#pager', size: "30"});
-
-  let detailTable = $('#details');
-  $.tablesorter.clearTableBody(detailTable[0]);
-  detailTable.append(list_html).trigger('update');
+  });
+  $('#counter_div').html(count_html);
 }
-
 
 
 function show_protein_list(go_name, goid) {
@@ -561,7 +538,7 @@ function show_protein_list(go_name, goid) {
     }
 
     let count_html = `<br><b><i>${go_name}</i>: ${count} ${count >= 2 ? 'proteins' : 'protein' }</b>`;
-    count_html +=  '<label style="margin-left: 10px;">Filter by:</label> <input id="detail-filter" data-column="all" type="search" style="margin-right: 30px;">' +
+    count_html +=  '<label style="margin-left: 10px;">Filter by:</label> <input id="detail-filter" data-column="all" type="search" style="margin-right: 30px;">' + 
       '<div id="pager" style="float: right;">' +
       '<button class="d-inline first btn"><<</button>' +
       '<button class="d-inline prev btn"><</button> ' +
@@ -587,6 +564,13 @@ function load_url_state(push_state = true) {
     currentName = null;
     clear_tables();
   }
+}
+
+function updateSelected() {
+  updateSelectedCount();
+  let proteinList = Object.values(selectedProteins);
+  $('#protein-counter')[0].innerHTML = `You selected <b>${proteinList.length}</b> proteins`;
+  show_proteins(proteinList);
 }
 
 $(() => {
