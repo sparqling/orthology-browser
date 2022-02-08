@@ -128,7 +128,7 @@ function UpdateChart() {
   
   proteins.sort((protein1, protein2) => protein1.mnemonic < protein2.mnemonic ? -1 : 1);
 
-  show_proteins();
+  show_proteins(proteins);
   show_genomes([baseTaxon].concat(comparedTaxa));
   
   if(proteins.length === 0 || comparedTaxa.length === 0) {
@@ -567,48 +567,3 @@ $(function() {
   });
 });
 
-function show_proteins() {
-  let total = 0;
-  let html = '<thead><tr>' +
-    '<th style="width: 1.5em;"align="center"><input type="checkbox" checked class="add_protein_all" title="Select all"></th>' +
-    '<th style="width: 7em;">Uniprot ID</th>' +
-    '<th style="width: 9em;">Mnemonic</th>' +
-    '<th>Full name</th>' +
-    '<th style="width: 9em;">Map</th>' +
-    '</tr></thead>';
-
-  for(let protein of proteins) {
-    html += '<tr>' + get_go_table_row(protein) + '</tr>';
-  }
-  html += '';
-
-  $('#selected-proteins').html(html)
-
-  for (let i = 0; i < $('.add_protein').length; i++) {
-    let each_checkbox = $('.add_protein').eq(i);
-    each_checkbox.prop("checked", true);
-  }
-
-
-  $(function() {
-    $.tablesorter.addParser({
-      id: "fancyNumber",
-      is: function(s) {
-        return /^[0-9]?[0-9,\.]*$/.test(s);
-      },
-      format: function(s) {
-        return $.tablesorter.formatFloat(s.replace(/,/g, ''));
-      },
-      type: "numeric"
-    });
-    $('#selected-proteins').tablesorter(
-      {
-        headers: {
-          0: {sorter:false},
-          7: {sorter:'fancyNumber'},
-          8: {sorter:'fancyNumber'},
-        }
-      }
-    );
-  });
-}

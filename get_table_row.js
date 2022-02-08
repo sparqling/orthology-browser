@@ -59,11 +59,11 @@ function get_go_table_row(protein_record) {
 }
 
 
-function show_genomes(genomes, cssSelector = '#selected-proteomes', extraOptions = {}) {
+function show_genomes(genomes, allSelected = true, cssSelector = '#selected-proteomes', extraOptions = {}) {
   let total = 0;
 
   let html = '<thead><tr>' +
-    '<th align="center"><input type="checkbox" class="add_genome_all" checked title="Select all"></th>' +
+    `<th align="center"><input type="checkbox" class="add_genome_all" ${allSelected ? 'checked' : ''} title="Select all"></th>` +
     '<th>Ref</th>' +
     '<th>Image</th>' +
     // '<th>Rep</th>' +
@@ -105,9 +105,9 @@ function show_genomes(genomes, cssSelector = '#selected-proteomes', extraOptions
   });
 }
 
-function show_proteins(proteins, cssSelector = '#selected-proteins', paginate = false, extraOptions = {}) {
+function show_proteins(proteins, allSelected = true, cssSelector = '#selected-proteins', paginate = false, extraOptions = {}) {
   let list_html = '<thead><tr>' +
-    '<th style="width: 1.5em;"align="center"><input type="checkbox" class="add_protein_all" title="Select all"></th>' +
+    `<th style="width: 1.5em;"align="center"><input type="checkbox" class="add_protein_all" ${allSelected ? 'checked' : ''} title="Select all"></th>` +
     '<th style="width: 7em;">Uniprot ID</th>' +
     '<th style="width: 9em;">Mnemonic</th>' +
     '<th>Full name</th>' +

@@ -132,8 +132,9 @@ $(function () {
   $(document).on('click', '.add_genome_all', function () {
     // Swith the icon
     let selected = $(this).prop("checked");
+    let table = $(this).closest('table');
 
-    $('.add_genome').each((i, each_checkbox) => {
+    $('.add_genome', table).each((i, each_checkbox) => {
       let each_row = $(each_checkbox).closest('tr');
       // Eech item
       let proteome_id = each_row.find('td.proteome-id-td').text();
@@ -540,7 +541,7 @@ function updateSelected() {
 }
 
 function show_genomes_table(genomes, count_html) {
-  show_genomes(Object.values(genomes), "#details", {
+  show_genomes(Object.values(genomes), false, "#details", {
     widgetOptions : {
       filter_columnFilters: false,
       filter_external: '#detail-filter',

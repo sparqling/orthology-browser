@@ -170,13 +170,14 @@ $(function () {
     }
     localStorage.setObject('selectedProteins', selectedProteins);
 
-    updateSelectedCount();
+    updateSelected();
   });
 
   $(document).on('click', '.add_protein_all', function () {
     // Swith the icon
     let selected = $(this).prop("checked");
-    $('.add_protein').each((i, each_checkbox) => {
+    let table = $(this).closest('table');
+    $('.add_protein', table).each((i, each_checkbox) => {
       let each_row = $(each_checkbox).closest('tr');
       // Eech item
       let protein_id = each_row.find('td.protein-id-td').text();
@@ -192,7 +193,7 @@ $(function () {
       }
     });
     localStorage.setObject('selectedProteins', selectedProteins);
-    updateSelectedCount();
+    updateSelected();
   });
 });
 
@@ -502,7 +503,7 @@ function show_dbpedia(taxon_name, goid, local_lang) {
 
 
 function show_proteins_table(proteins, count_html) {
-  show_proteins(proteins, "#details", false, {
+  show_proteins(proteins, false, "#details", true, {
     widgetOptions : {
       filter_columnFilters: false,
       filter_external: '#detail-filter',
