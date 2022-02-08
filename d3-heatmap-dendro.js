@@ -113,8 +113,12 @@
         }
         tip += "</ui>";
         showToolTip(this, tip);
+        $(`.table-row-${mapNameToTaxa[d.name].up_id}`).addClass("highlight");
       })
-      .on("mouseout", function(){ hideTooltip(this) })
+      .on("mouseout", function(d){ 
+        hideTooltip(this);
+        $(`.table-row-${mapNameToTaxa[d.name].up_id}`).removeClass("highlight");
+      })
       .attr("class", function (d, i) {
         return "rowLabel mono r" + i;
       });
@@ -136,9 +140,13 @@
           if(this.href.animVal !== 'undefined') {
             //Update the tooltip position and value
             showTooltipImage(d3.event.pageX, d3.event.pageY, d.name, this.href.animVal);
+            $(`.table-row-${mapNameToTaxa[d.name].up_id}`).addClass("highlight");
           }
        })
-      .on("mouseout", function(){ hideTooltip(this) });
+      .on("mouseout", function(d){ 
+        hideTooltip(this);
+        $(`.table-row-${mapNameToTaxa[d.name].up_id}`).removeClass("highlight");
+      });
 
 
     let colLabels = svg.append("g")

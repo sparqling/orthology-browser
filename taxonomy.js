@@ -541,12 +541,16 @@ function updateSelected() {
 }
 
 function show_genomes_table(genomes, count_html) {
-  show_genomes(Object.values(genomes), false, "#details", {
-    widgetOptions : {
-      filter_columnFilters: false,
-      filter_external: '#detail-filter',
-    },
-    widgets: ["filter"],
+  show_genomes(Object.values(genomes),  
+     { allSelected: false,
+       cssSelector: "#details", 
+       extraOptions: {
+         widgetOptions: {
+           filter_columnFilters: false,
+           filter_external: '#detail-filter',
+         },
+         widgets: ["filter"],
+       }
   });
   $('#counter_div').html(count_html);
   

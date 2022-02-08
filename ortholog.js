@@ -140,7 +140,6 @@ function UpdateChart() {
   proteins.sort((protein1, protein2) => protein1.mnemonic < protein2.mnemonic ? -1 : 1);
 
   show_proteins(proteins);
-  show_genomes([baseTaxon].concat(comparedTaxa));
   
   if(proteins.length === 0 || comparedTaxa.length === 0) {
     $('#loader-container').hide();
@@ -377,12 +376,21 @@ function renderChart() {
   } else {
     dataForD3.rowJSON = taxonTree;
   }
-  let orderedTaxons = orderedLeaves(dataForD3.rowJSON);
-  
+  let orderedTaxa = orderedLeaves(dataForD3.rowJSON);
+
+  let taxaForTable = [baseTaxon];
+  for(let taxon of orderedTaxa) {
+    if(taxon.id !== baseTaxon.genome_taxid && mapTaxIdToTaxa[taxon.id]) {
+      taxaForTable.push(mapTaxIdToTaxa[taxon.id])
+    }
+  }
+  console.log(taxaForTable);
+  show_genomes(taxaForTable);
+
   matrix = [];
   
   tooltips = {};
-  orderedTaxons.forEach((tax, j) => {
+  orderedTaxa.forEach((tax, j) => {
     let row = [];
     tooltips[j] = {};
     orderedProteins.forEach((prot, i) => {

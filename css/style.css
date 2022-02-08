@@ -64,6 +64,9 @@ table.tablesorter thead tr .tablesorter-headerDesc {
     border: 2px #fff solid;
 }
 
+tr.highlight {
+    background-color: #ADDAFE;
+}
 
 #taxonomy td {
     border: 2px #fff solid;

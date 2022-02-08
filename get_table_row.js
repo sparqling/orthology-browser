@@ -14,7 +14,7 @@ function get_taxon_table_row(genome_record) {
   }
   let name = `<i>${scientific_name}</i> ${common_name}`;
 
-  let list_html = '<tr>';
+  let list_html = `<tr class="table-row-${genome_record.up_id}">`;
   list_html += `<td align="center"><input type="checkbox" class="add_genome" data-codename="${genome_record.up_id}" ${checkedAttr} title="Select"></td>`;
   if (genome_record.types.match(/Reference_Proteome/)) {
     list_html += '<td align="center"> &#9675 </td>';
@@ -59,7 +59,7 @@ function get_go_table_row(protein_record) {
 }
 
 
-function show_genomes(genomes, allSelected = true, cssSelector = '#selected-proteomes', extraOptions = {}) {
+function show_genomes(genomes, {allSelected = true, cssSelector = '#selected-proteomes', extraOptions = {} } = {}) {
   let total = 0;
 
   let html = '<thead><tr>' +
