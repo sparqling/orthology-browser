@@ -104,3 +104,35 @@ function show_genomes(genomes, cssSelector = '#selected-proteomes', extraOptions
     );
   });
 }
+
+function show_proteins(proteins, cssSelector = '#selected-proteins', paginate = false, extraOptions = {}) {
+  let list_html = '<thead><tr>' +
+    '<th style="width: 1.5em;"align="center"><input type="checkbox" class="add_protein_all" title="Select all"></th>' +
+    '<th style="width: 7em;">Uniprot ID</th>' +
+    '<th style="width: 9em;">Mnemonic</th>' +
+    '<th>Full name</th>' +
+    '<th style="width: 9em;">Map</th>' +
+    '</tr></thead>';
+  for (let protein of proteins) {
+    list_html += get_go_table_row(protein);
+  }
+
+  $(cssSelector).html(list_html);
+  
+  let options = {
+    headers: {
+      headers: {
+        0: {sorter: false},
+      },
+    },
+  };
+  options = Object.assign(options, extraOptions);
+
+  $(function() {
+    let sorter = $(cssSelector).tablesorter(
+      options
+    );
+    if(paginate)
+      sorter.tablesorterPager({container: '#pager', size: "30"});
+  });
+}
