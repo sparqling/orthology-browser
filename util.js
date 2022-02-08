@@ -96,6 +96,21 @@ $(document).on('mouseout', '.table-image', (e) => {
   hideTooltip(e.target);
 });
 
+$(document).on('click', '#clear-btn', (e) => {
+  if(confirm("Really clear all your selections?")) {
+    localStorage.removeItem('selectedTaxa');
+    localStorage.removeItem('selectedProteins');
+
+    sessionStorage.removeItem('srcDB')
+    localStorage.removeItem('srcDB');
+    localStorage.removeItem('showCellNumber');
+    localStorage.removeItem('h-order');
+    localStorage.removeItem('v-order');
+    localStorage.removeItem('selectedTaxa');
+    window.location.reload();
+  }
+});
+
 
 function hideTooltip(target) {
   d3.select(target).classed("cell-hover", false);

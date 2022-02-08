@@ -47,7 +47,7 @@ function get_taxon_table_row(genome_record) {
 function get_go_table_row(protein_record) {
   let checkedAttr = selectedProteins[protein_record.up_id] !== undefined ? "checked" : "";
   let list_html = '<tr>';/**/
-  list_html += `<td align="center"><input type="checkbox" class="add_protein" ${checkedAttr} title="Select"></td>`;
+  list_html += `<td align="center" style="text-align: center;"><input type="checkbox" class="add_protein" ${checkedAttr} title="Select"></td>`;
   list_html += `<td class="protein-id-td"><a href="${protein_record.up_id_url}" target="_blank">${protein_record.up_id}</a></td>`;
 
   for(let c of  ['mnemonic', 'full_name', 'map']) {
@@ -63,7 +63,7 @@ function show_genomes(genomes, allSelected = true, cssSelector = '#selected-prot
   let total = 0;
 
   let html = '<thead><tr>' +
-    `<th align="center"><input type="checkbox" class="add_genome_all" ${allSelected ? 'checked' : ''} title="Select all"></th>` +
+    `<th align="center" style="text-align: center"><input type="checkbox" class="add_genome_all" ${allSelected ? 'checked' : ''} title="Select all"></th>` +
     '<th>Ref</th>' +
     '<th>Image</th>' +
     // '<th>Rep</th>' +
@@ -107,7 +107,7 @@ function show_genomes(genomes, allSelected = true, cssSelector = '#selected-prot
 
 function show_proteins(proteins, allSelected = true, cssSelector = '#selected-proteins', paginate = false, extraOptions = {}) {
   let list_html = '<thead><tr>' +
-    `<th style="width: 1.5em;"align="center"><input type="checkbox" class="add_protein_all" ${allSelected ? 'checked' : ''} title="Select all"></th>` +
+    `<th style="width: 1.5em;"align="center" style="text-align: center;"><input type="checkbox" class="add_protein_all" ${allSelected ? 'checked' : ''} title="Select all"></th>` +
     '<th style="width: 7em;">Uniprot ID</th>' +
     '<th style="width: 9em;">Mnemonic</th>' +
     '<th>Full name</th>' +
@@ -121,9 +121,7 @@ function show_proteins(proteins, allSelected = true, cssSelector = '#selected-pr
   
   let options = {
     headers: {
-      headers: {
-        0: {sorter: false},
-      },
+      0: {sorter: false},
     },
   };
   options = Object.assign(options, extraOptions);
