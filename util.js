@@ -14,6 +14,7 @@ let selectedTaxa = localStorage.getObject('selectedTaxa') || {};
 let selectedProteins = localStorage.getObject('selectedProteins') || {};
 
 function queryBySpang(queryUrl, param, callback, target_end = null) {
+  spang.proxy = 'https://spang.dbcls.jp/sparql-proxy';
   $.get(queryUrl, (query) => {
     spang.query(query, target_end ? target_end : endpoint, {
       param: param,

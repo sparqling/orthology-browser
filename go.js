@@ -17,26 +17,6 @@ Storage.prototype.getObject = function(key) {
 }
 
 
-function queryBySpang(queryUrl, param, callback, target_end = null) {
-  $.get(queryUrl, (query) => {
-    spang.query(query, target_end ? target_end : endpoint, {param: param, format: 'json'}, (error, status, result) => {
-      let resultJson;
-      try {
-        resultJson = JSON.parse(result);
-      } catch (e) {
-        console.log(e);
-        resultJson = {
-          results:
-            {
-              bindings: {}
-            }
-        };
-      }
-      callback(resultJson);
-    });
-  });
-}
-
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
