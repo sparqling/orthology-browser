@@ -3,11 +3,11 @@ let comparedTaxa = [];
 let dbConfig = {
   orthodb: {
     query: 'sparql/orthodb.rq',
-    endpoint: 'https://orth.dbcls.jp/sparql-proxy-orthodb'
+    endpoint: 'https://sparql.orthodb.org/sparql/'
   },
   oma: {
     query: 'sparql/oma.rq',
-    endpoint: 'https://orth.dbcls.jp/sparql-proxy-oma'
+    endpoint: 'https://sparql.omabrowser.org/sparql/'
   }
 };
 
