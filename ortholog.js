@@ -179,7 +179,6 @@ function UpdateChart() {
     for (let binding of result.results.bindings) {
       let taxon = binding.taxid.value.replace(/.*\//, '');
       let baseProt = binding.uniprot_human.value.replace(/.*\//, '');
-      ;
       let taxProt = binding.uniprot.value.replace(/.*\//, '');
       if (!taxonProtMap[taxon][baseProt])
         taxonProtMap[taxon][baseProt] = [taxProt];
@@ -384,7 +383,6 @@ function renderChart() {
       taxaForTable.push(mapTaxIdToTaxa[taxon.id])
     }
   }
-  console.log(taxaForTable);
   show_genomes(taxaForTable);
 
   matrix = [];
