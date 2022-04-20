@@ -463,7 +463,7 @@ $(() => {
   });
 
   // TODO: No query is needed if all taxa and proteins are cached
-  queryBySpang(`sparql/search_genomes_for_values.rq`,
+  queryBySpang(`sparql/get_proteome_statistics.rq`,
     { values: Object.keys(selectedTaxa).filter(up_id => !selectedTaxa[up_id]).map((id) => `(proteome:${id})`).join(' ') },
     function (data) {
       let data_p = data['results']['bindings'];
