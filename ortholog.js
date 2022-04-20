@@ -261,35 +261,36 @@ function constructDummyTree(elemList) {
 function constructTree(result) {
   let nodeMap = {};
   let humanNode_ = null;
-  for(let row of result.bindings) {
+  for (let row of result.bindings) {
     let childId = row.taxon_int.value;
     let parentId = row.parent_int.value;
-    if(!nodeMap[parentId])
+    if (!nodeMap[parentId]) {
       nodeMap[parentId] = {
         id: parentId,
         name: row.parent_label.value,
         children: [],
         parent: null
       };
-    
-    if(!nodeMap[childId])
+    }
+    if (!nodeMap[childId]) {
       nodeMap[childId] = {
         id: childId,
         name: mapTaxIdToTaxa[childId]?.displayedName,
         children: [],
         parent: null
       };
-    
+    }
     nodeMap[parentId].children.push(nodeMap[childId]);
     nodeMap[childId].parent = nodeMap[parentId];
-    if(childId === '9606'){
+    if (childId === '9606') {
       humanNode_ = nodeMap[childId];
     }
   }
-  if(nodeMap.length === 0)
+  if (nodeMap.length === 0) {
     return null;
+  }
   let root = nodeMap[Object.keys(nodeMap)[0]];
-  while(root.parent) {
+  while (root.parent) {
      root = root.parent;
   }
   return [root, humanNode_];
