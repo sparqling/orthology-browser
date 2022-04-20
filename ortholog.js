@@ -267,7 +267,6 @@ function constructTree(result) {
     if(!nodeMap[parentId])
       nodeMap[parentId] = {
         id: parentId,
-        up_id: row.up_id,
         name: row.parent_label.value,
         children: [],
         parent: null
@@ -276,7 +275,6 @@ function constructTree(result) {
     if(!nodeMap[childId])
       nodeMap[childId] = {
         id: childId,
-        up_id: row.up_id,
         name: mapTaxIdToTaxa[childId]?.displayedName,
         children: [],
         parent: null
