@@ -224,8 +224,7 @@ function UpdateChart() {
     queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
       [taxonTree, humanNode] = constructTree(res.results);
       raiseNode(humanNode);
-      // taxonTree = simplifyTree(taxonTree);
-      
+      taxonTree = simplifyTree(taxonTree);
       renderChart();
     },  endpoint);
   }, dbConfig[srcDB].endpoint);
