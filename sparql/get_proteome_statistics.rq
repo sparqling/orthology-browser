@@ -1,14 +1,17 @@
+#!/usr/bin/env spang2
+# @endpoint https://orth.dbcls.jp/sparql
+# @param values=(proteome:UP000002277) (proteome:UP000000589) (proteome:UP000002494)
+
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX up: <http://purl.uniprot.org/core/>
-PREFIX upTax: <http://purl.uniprot.org/taxonomy/>
 PREFIX proteome: <http://purl.uniprot.org/proteomes/>
-PREFIX taxid: <http://identifiers.org/taxonomy/>
 PREFIX busco: <htttp://busco.ezlab.org/schema#>
 
 SELECT DISTINCT ?proteome ?taxid ?organism ?proteins ?isoforms ?cpd_label ?busco_complete ?busco_single ?busco_multi ?busco_fragmented ?busco_missing ?assembly (group_concat(distinct ?type ; separator = ", ") AS ?types)
 WHERE {
-  VALUES (?proteome) { {{ values }} }
+  VALUES (?proteome) { ${values} }
   ?proteome a up:Proteome ;
       a ?type ;
       rdfs:label ?organism ;
