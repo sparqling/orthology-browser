@@ -13,43 +13,43 @@ function getProteomeTableRow(proteome) {
   }
   let name = `<i>${scientific_name}</i> ${common_name}`;
 
-  let list_html = `<tr class="table-row-${proteome.up_id}">`;
-  list_html += `<td align="center"><input type="checkbox" class="add_genome" data-codename="${proteome.up_id}" ${checkedAttr} title="Select"></td>`;
+  let html = `<tr class="table-row-${proteome.up_id}">`;
+  html += `<td align="center"><input type="checkbox" class="add_genome" data-codename="${proteome.up_id}" ${checkedAttr} title="Select"></td>`;
   if (proteome.types.match(/Reference_Proteome/)) {
-    list_html += '<td align="center"> &#9675 </td>';
+    html += '<td align="center"> &#9675 </td>';
   } else {
-    list_html += '<td> </td>';
+    html += '<td> </td>';
   }
-  list_html += `<td style="text-align: center;"><img class="table-image image-${proteome.up_id}" style="height: 25px;" data-title="${proteome.up_id}"></td>`;
-  list_html += `<td class="proteome-id-td"><a href="${proteome.up_id_url}" target="_blank">${proteome.up_id}</a></td>`;
-  list_html += `<td><a href="${assembly_url}" target="_blank">${proteome.assembly}</a></td>`;
-  list_html += '<td>' + proteome.genome_taxid + '</td>';
-  list_html += '<td class="genome_name">' + name + '</td>';
-  list_html += '<td align="right">' + proteome.n_genes.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
-  list_html += '<td align="right">' + proteome.n_isoforms.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
-  list_html += '<td align="right">' + proteome.cpd_label + '</td>';
-  list_html += '<td align="right">' + proteome.busco_complete + '</td>';
-  list_html += '<td align="right">' + proteome.busco_single + '</td>';
-  list_html += '<td align="right">' + proteome.busco_multi + '</td>';
-  list_html += '<td align="right">' + proteome.busco_fragmented + '</td>';
-  list_html += '<td align="right">' + proteome.busco_missing + '</td>';
-  list_html += '</tr>';
+  html += `<td style="text-align: center;"><img class="table-image image-${proteome.up_id}" style="height: 25px;" data-title="${proteome.up_id}"></td>`;
+  html += `<td class="proteome-id-td"><a href="${proteome.up_id_url}" target="_blank">${proteome.up_id}</a></td>`;
+  html += `<td><a href="${assembly_url}" target="_blank">${proteome.assembly}</a></td>`;
+  html += '<td>' + proteome.genome_taxid + '</td>';
+  html += '<td class="genome_name">' + name + '</td>';
+  html += '<td align="right">' + proteome.n_genes.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
+  html += '<td align="right">' + proteome.n_isoforms.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
+  html += '<td align="right">' + proteome.cpd_label + '</td>';
+  html += '<td align="right">' + proteome.busco_complete + '</td>';
+  html += '<td align="right">' + proteome.busco_single + '</td>';
+  html += '<td align="right">' + proteome.busco_multi + '</td>';
+  html += '<td align="right">' + proteome.busco_fragmented + '</td>';
+  html += '<td align="right">' + proteome.busco_missing + '</td>';
+  html += '</tr>';
 
-  return list_html;
+  return html;
 }
 
 function get_go_table_row(protein_record) {
   let checkedAttr = selectedProteins[protein_record.up_id] !== undefined ? "checked" : "";
-  let list_html = '<tr>';/**/
-  list_html += `<td align="center" style="text-align: center;"><input type="checkbox" class="add_protein" ${checkedAttr} title="Select"></td>`;
-  list_html += `<td class="protein-id-td"><a href="${protein_record.up_id_url}" target="_blank">${protein_record.up_id}</a></td>`;
+  let html = '<tr>';/**/
+  html += `<td align="center" style="text-align: center;"><input type="checkbox" class="add_protein" ${checkedAttr} title="Select"></td>`;
+  html += `<td class="protein-id-td"><a href="${protein_record.up_id_url}" target="_blank">${protein_record.up_id}</a></td>`;
 
   for(let c of  ['mnemonic', 'full_name', 'map']) {
-    list_html += '<td>' + protein_record[c] + '</td>';
+    html += '<td>' + protein_record[c] + '</td>';
   }
 
-  list_html += '</tr>';
-  return list_html;
+  html += '</tr>';
+  return html;
 }
 
 function showProteomes(proteomes, { allSelected = true,
@@ -96,31 +96,31 @@ function showProteomes(proteomes, { allSelected = true,
 }
 
 function show_proteins(proteins, allSelected = true, cssSelector = '#selected-proteins', paginate = false, extraOptions = {}) {
-  let list_html = '<thead><tr>' +
+  let html = '<thead><tr>' +
     `<th style="width: 1.5em;"align="center" style="text-align: center;"><input type="checkbox" class="add_protein_all" ${allSelected ? 'checked' : ''} title="Select all"></th>` +
     '<th style="width: 7em;">Uniprot ID</th>' +
     '<th style="width: 9em;">Mnemonic</th>' +
     '<th>Full name</th>' +
     '<th style="width: 9em;">Map</th>' +
     '</tr></thead>';
+
   for (let protein of proteins) {
-    list_html += get_go_table_row(protein);
+    html += get_go_table_row(protein);
   }
 
-  $(cssSelector).html(list_html);
+  $(cssSelector).html(html);
   
-  let options = {
+  let sorterOptions = {
     headers: {
-      0: {sorter: false},
-    },
+      0: { sorter: false }
+    }
   };
-  options = Object.assign(options, extraOptions);
+  sorterOptions = Object.assign(sorterOptions, extraOptions);
 
   $(function() {
-    let sorter = $(cssSelector).tablesorter(
-      options
-    );
-    if(paginate)
-      sorter.tablesorterPager({container: '#pager', size: "30"});
+    let sorter = $(cssSelector).tablesorter(sorterOptions);
+    if (paginate) {
+      sorter.tablesorterPager({ container: '#pager', size: "30" });
+    }
   });
 }
