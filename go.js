@@ -25,7 +25,7 @@ function init() {
   candidates = [];
   $.ajaxSetup({async: false});
 
-  queryBySpang(`${sparqlDir}/get_term_as_candidates.rq`, {}, (data) => {
+  queryBySpang(`${sparqlDir}/get_term_as_candidates.rq`, null, {}, (data) => {
     scientificNameMap = {};
     for (let binding of data.results.bindings) {
       let entry = binding.name.value;
@@ -197,7 +197,7 @@ function show_contents(name, display_name = null, push_state = true) {
   if (push_state)
     history.pushState({name, display_name}, name, `?name=${name}&display_name=${display_name}`)
 
-  queryBySpang(`${sparqlDir}/name_to_goid.rq`, {name}, function (data) {
+  queryBySpang(`${sparqlDir}/name_to_goid.rq`, null, {name}, (data) => {
     data['results']['bindings'][0]['goid']['value'].match(/(\d+)$/);
     goid = RegExp.$1;
     // rank = data['results']['bindings'][0]['rank']['value'].replace(/.*\//, '');
@@ -244,7 +244,7 @@ function show_hierarchy(goid, lang) {
   let table_sister = [];
 
   let upper_promise = new Promise((resolve, reject) => {
-    queryBySpang(`${sparqlDir}/goid_to_get_upper.rq`, {goid}, function (data) {
+    queryBySpang(`${sparqlDir}/goid_to_get_upper.rq`, null, {goid}, (data) => {
       let data_p = data['results']['bindings'];
       let added_go = new Set();
       for (let i = 0; i < data_p.length; i++) {
@@ -263,7 +263,7 @@ function show_hierarchy(goid, lang) {
   });
 
   let lower_promise = new Promise((resolve, reject) => {
-    queryBySpang(`${sparqlDir}/goid_to_get_lower.rq`, {goid}, function (data) {
+    queryBySpang(`${sparqlDir}/goid_to_get_lower.rq`, null, {goid}, (data) => {
       let data_p = data['results']['bindings'];
       for (let i = 0; i < data_p.length; i++) {
         table_lower[i] = data_p[i];
@@ -278,7 +278,7 @@ function show_hierarchy(goid, lang) {
   });
 
   let sister_promise = new Promise((resolve, reject) => {
-    queryBySpang(`${sparqlDir}/goid_to_get_sisters.rq`, {goid}, function (data) {
+    queryBySpang(`${sparqlDir}/goid_to_get_sisters.rq`, null, {goid}, (data) => {
       let data_p = data['results']['bindings'];
       for (let i = 0; i < data_p.length; i++) {
         table_sister[i] = data_p[i];
@@ -297,7 +297,7 @@ function show_hierarchy(goid, lang) {
   let dbpedia_labe_local = {};
   let local_promise = new Promise((resolve, reject) => {
     Promise.all([upper_promise, lower_promise, sister_promise]).then(() => {
-      queryBySpang(`${commonSparqlDir}/dbpedia_local_names.rq`, {resourceId: list, local_lang: lang}, function (data) {
+      queryBySpang(`${commonSparqlDir}/dbpedia_local_names.rq`, null, {resourceId: list, local_lang: lang}, (data) => {
         let data_p = data['results']['bindings'];
         for (let i = 0; i < data_p.length; i++) {
           let dbpedia_uri = data_p[i]['dbpedia_resource']['value'];
@@ -309,7 +309,7 @@ function show_hierarchy(goid, lang) {
           }
         }
         resolve();
-      }, dbpedia_endpoint)
+      });
     });
   });
 
@@ -411,7 +411,7 @@ function show_dbpedia(taxon_name, goid, local_lang) {
     return;
   }
 
-  queryBySpang(`${sparqlDir}/dbpedia_entry.rq`, {
+  queryBySpang(`${sparqlDir}/dbpedia_entry.rq`, dbpedia_endpoint, {
     entry: dbpedia.uri,
     lang_list: local_lang == 'en' ? '' : `("${local_lang}")`
   }, function (data) {
@@ -473,7 +473,7 @@ function show_dbpedia(taxon_name, goid, local_lang) {
     } else {
       $('#dbpedia_div').html('Not found in DBpedia');
     }
-  }, dbpedia_endpoint);
+  });
 }
 
 
@@ -492,7 +492,7 @@ function show_proteins_table(proteins, count_html) {
 function show_protein_list(go_name, goid) {
   let count = 0;
 
-  queryBySpang(`${sparqlDir}/goid_to_search_proteins.rq`, {goid: 'GO_' + goid}, function (data) {
+  queryBySpang(`${sparqlDir}/goid_to_search_proteins.rq`, null, {goid: 'GO_' + goid}, (data) => {
     let data_p = data['results']['bindings'];
     count = data_p.length;
     for (let i = 0; i < count; i++) {

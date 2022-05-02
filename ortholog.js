@@ -165,7 +165,7 @@ function UpdateChart() {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
   }
 
-  queryBySpang(dbConfig[srcDB].query, {
+  queryBySpang(dbConfig[srcDB].query, dbConfig[srcDB].endpoint, {
     taxa: comparedTaxa.map((taxon) => 'upTax:' + taxon.genome_taxid).join(' '),
     proteins: proteins.map((protein) => 'uniprot:' + protein.up_id).join(' ')
   }, (result) => {
@@ -221,13 +221,13 @@ function UpdateChart() {
 
     series.sort((row1, row2) => row1.cellNum < row2.cellNum || (row1.cellNum == row2.cellNum) && row1.sum < row2.sum ? 1 : -1);
     
-    queryBySpang("sparql/taxonomy_tree.rq", { taxids: taxIdList.join(" ") },(res) => {
+    queryBySpang("sparql/taxonomy_tree.rq", endpoint, { taxids: taxIdList.join(" ") },(res) => {
       [taxonTree, humanNode] = constructTree(res.results);
       raiseNode(humanNode);
       taxonTree = simplifyTree(taxonTree);
       renderChart();
-    },  endpoint);
-  }, dbConfig[srcDB].endpoint);
+    });
+  });
 }
 
 function constructDummyTree(elemList) {
@@ -463,7 +463,7 @@ $(() => {
   });
 
   // TODO: No query is needed if all taxa and proteins are cached
-  queryBySpang(`sparql/get_proteome_statistics.rq`,
+  queryBySpang(`sparql/get_proteome_statistics.rq`, null,
     { values: Object.keys(selectedTaxa).filter(up_id => !selectedTaxa[up_id]).map((id) => `(proteome:${id})`).join(' ') },
     function (data) {
       let data_p = data['results']['bindings'];
@@ -504,7 +504,7 @@ $(() => {
       }
       localStorage.setObject('selectedTaxa', selectedTaxa);
 
-      queryBySpang(`sparql/goid_to_search_proteins.rq`,
+      queryBySpang(`sparql/goid_to_search_proteins.rq`, null,
         { values: Object.keys(selectedProteins).filter(up_id => !selectedProteins[up_id]).map((id) => `(uniprot:${id})`).join(' ') },
         function (data) {
           let bindings = data['results']['bindings'];

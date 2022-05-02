@@ -14,7 +14,7 @@ function init() {
   candidates = [];
   $.ajaxSetup({async: false});
 
-  queryBySpang(`${sparqlDir}/get_taxa_as_candidates.rq`, {}, (data) => {
+  queryBySpang(`${sparqlDir}/get_taxa_as_candidates.rq`, null, {}, (data) => {
     scientificNameMap = {};
     for (let binding of data.results.bindings) {
       let entry = binding.name.value;
@@ -171,7 +171,7 @@ function show_contents(taxon_name, display_name = null, push_state = true) {
   if (push_state)
     history.pushState({taxon_name, display_name}, taxon_name, `?taxon_name=${taxon_name}&display_name=${display_name}`)
 
-  queryBySpang(`${sparqlDir}/scientific_name_to_taxid.rq`, {taxon_name}, (data) => {
+  queryBySpang(`${sparqlDir}/scientific_name_to_taxid.rq`, null, {taxon_name}, (data) => {
     data['results']['bindings'][0]['taxon']['value'].match(/(\d+)$/);
     const taxid = RegExp.$1;
     show_hierarchy(taxid, lang);
@@ -217,7 +217,7 @@ function show_hierarchy(taxid, lang) {
   let table_sister = [];
 
   let upper_promise = new Promise((resolve, reject) => {
-    queryBySpang(`${sparqlDir}/taxid_to_get_upper.rq`, {taxid}, function (data) {
+    queryBySpang(`${sparqlDir}/taxid_to_get_upper.rq`, null, {taxid}, (data) => {
       let data_p = data['results']['bindings'];
       for (let i = 0; i < data_p.length; i++) {
         table_upper[i] = data_p[i];
@@ -232,7 +232,7 @@ function show_hierarchy(taxid, lang) {
   });
 
   let lower_promise = new Promise((resolve, reject) => {
-    queryBySpang(`${sparqlDir}/taxid_to_get_lower.rq`, {taxid}, function (data) {
+    queryBySpang(`${sparqlDir}/taxid_to_get_lower.rq`, null, {taxid}, (data) => {
       let data_p = data['results']['bindings'];
       for (let i = 0; i < data_p.length; i++) {
         table_lower[i] = data_p[i];
@@ -247,7 +247,7 @@ function show_hierarchy(taxid, lang) {
   });
 
   let sister_promise = new Promise((resolve, reject) => {
-    queryBySpang(`${sparqlDir}/taxid_to_get_sisters.rq`, {taxid}, function (data) {
+    queryBySpang(`${sparqlDir}/taxid_to_get_sisters.rq`, null, {taxid}, (data) => {
       let data_p = data['results']['bindings'];
       for (let i = 0; i < data_p.length; i++) {
         table_sister[i] = data_p[i];
@@ -266,7 +266,7 @@ function show_hierarchy(taxid, lang) {
   let dbpedia_labe_local = {};
   let local_promise = new Promise((resolve, reject) => {
     Promise.all([upper_promise, lower_promise, sister_promise]).then(() => {
-      queryBySpang(`${commonSparqlDir}/dbpedia_local_names.rq`, { resourceId: list, local_lang: lang}, function (data) {
+      queryBySpang(`${commonSparqlDir}/dbpedia_local_names.rq`, dbpedia_endpoint, { resourceId: list, local_lang: lang}, (data) => {
         let data_p = data['results']['bindings'];
         for (let i = 0; i < data_p.length; i++) {
           let dbpedia_uri = data_p[i]['dbpedia_resource']['value'];
@@ -278,7 +278,7 @@ function show_hierarchy(taxid, lang) {
           }
         }
         resolve();
-      }, dbpedia_endpoint)
+      });
     });
   });
 
@@ -396,7 +396,7 @@ function show_dbpedia(taxon_name, taxid, local_lang) {
     return;
   }
 
-  queryBySpang(`${sparqlDir}/dbpedia_entry.rq`, {
+  queryBySpang(`${sparqlDir}/dbpedia_entry.rq`, dbpedia_endpoint, {
     entry: dbpedia.uri,
     lang_list: local_lang == 'en' ? '' : `("${local_lang}")`
   }, function (data) {
@@ -456,14 +456,14 @@ function show_dbpedia(taxon_name, taxid, local_lang) {
       html += '</table>';
       $('#dbpedia_div').html(html);
     }
-  }, dbpedia_endpoint);
+  });
 }
 
 function show_genome_comparison(taxid) {
   let mbgd_page = '/htbin/cluster_map?show_summary=on&map_type=cluster_size&tabid=';
 
   let count_compared = 0;
-  queryBySpang(`${sparqlDir}/taxid_to_get_dataset.rq`, {taxid}, function (data) {
+  queryBySpang(`${sparqlDir}/taxid_to_get_dataset.rq`, null, {taxid}, (data) => {
     let data_p = data['results']['bindings'];
     for (let i = 0; i < data_p.length; i++) {
       count_compared = data_p[i]['count']['value'];
@@ -492,7 +492,7 @@ function show_genome_comparison(taxid) {
 }
 
 function show_specific_genes(taxid) {
-  queryBySpang(`${sparqlDir}/taxon_to_default_orgs.rq`, {taxid}, function (data) {
+  queryBySpang(`${sparqlDir}/taxon_to_default_orgs.rq`, null, {taxid}, (data) => {
     let data_p = data['results']['bindings'];
     let count_default = 0;
     for (let i = 0; i < data_p.length; i++) {
@@ -545,7 +545,7 @@ function showProteomes(proteomes) {
 
 function showProteomesInTaxon(taxon_name, taxid) {
 
-  queryBySpang(`${sparqlDir}/taxon_to_search_genomes.rq`, {target_taxid: taxid}, (data) => {
+  queryBySpang(`${sparqlDir}/taxon_to_search_genomes.rq`, null, {target_taxid: taxid}, (data) => {
     let data_p = data['results']['bindings'];
 
     const count = data_p.length;

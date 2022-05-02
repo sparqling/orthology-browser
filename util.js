@@ -1,7 +1,6 @@
 const dbpedia_endpoint = 'https://dbpedia.org/sparql';
 const endpoint = 'https://orth.dbcls.jp/sparql-dev';
 
-
 Storage.prototype.setObject = function(key, value) {
   this.setItem(key, JSON.stringify(value));
 }
@@ -13,7 +12,7 @@ Storage.prototype.getObject = function(key) {
 let selectedTaxa = localStorage.getObject('selectedTaxa') || {};
 let selectedProteins = localStorage.getObject('selectedProteins') || {};
 
-function queryBySpang(queryUrl, param, callback, target_end = null) {
+function queryBySpang(queryUrl, target_end, param, callback) {
   spang.proxy = 'https://spang.dbcls.jp/sparql-proxy';
   $.get(queryUrl, (query) => {
     spang.query(query, target_end ? target_end : endpoint, {
@@ -73,7 +72,7 @@ function showDbpediaImage(taxa) {
       $(`.row-image-${taxon.up_id}`).each(function() { this.setAttribute('href', cache) });
       $(`.image-${taxon.up_id}`).prop('src', cache);
     } else {
-      queryBySpang(`sparql/dbpedia_thumbnails.rq`, {
+      queryBySpang(`sparql/dbpedia_thumbnails.rq`, dbpedia_endpoint, {
           taxon: dbpedia_uri(taxon.organism_name),
         }, (res) => {
           let thumbnailUri = res.results.bindings[0]?.image.value;
@@ -82,8 +81,7 @@ function showDbpediaImage(taxa) {
             $(`.image-${taxon.up_id}`).prop('src', thumbnailUri);
           }
           mapTaxIdToThumbnail[taxon.genome_taxid] = thumbnailUri ?? '';
-        }, dbpedia_endpoint
-      )
+        });
     }
   })
 }
