@@ -16,16 +16,16 @@ function queryBySpang(queryUrl, target_end, param, callback) {
   spang.proxy = 'https://spang.dbcls.jp/sparql-proxy';
   $.get(queryUrl, (query) => {
     spang.query(query, target_end ? target_end : endpoint, { param: param, format: 'json'}, (error, status, result) => {
-      let resultJson;
+      let data;
       try {
-        resultJson = JSON.parse(result);
+        data = JSON.parse(result);
       } catch (e) {
         console.log(e);
-        resultJson = {
-          results:{ bindings: {} }
+        data = {
+          results: { bindings: {} }
         };
       }
-      callback(resultJson);
+      callback(data);
     });
   });
 }
