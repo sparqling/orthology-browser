@@ -1,4 +1,4 @@
-let haystack = [];
+let candidates = [];
 let currentName = null;
 let scientificNameMap = {}; // Display name => Scientific name
 let displayNameMap = {}; // Scientific name => Display name
@@ -22,7 +22,7 @@ function escapeRegExp(string) {
 }
 
 function init() {
-  haystack = [];
+  candidates = [];
   $.ajaxSetup({async: false});
 
   queryBySpang(`${sparqlDir}/get_term_as_candidates.rq`, {}, (data) => {
@@ -34,7 +34,7 @@ function init() {
       //   scientificNameMap[entry] = binding.name.value;
       //   displayNameMap[binding.name.value] = entry;
       // }
-      haystack.push(entry);
+      candidates.push(entry);
     }
   });
 
@@ -47,14 +47,14 @@ $(function () {
     source: (request, response) => {
       // Forward match
       const maxLength = 100;
-      let match = $.grep(haystack, (value) => {
+      let match = $.grep(candidates, (value) => {
         let regexp = new RegExp('^' + escapeRegExp(request.term), 'i');
         return value.match(regexp);
       }).slice(0, maxLength)
 
       if(match.length < maxLength) {
         // Match from the space
-        match = match.concat($.grep(haystack, (value) => {
+        match = match.concat($.grep(candidates, (value) => {
           let regexp = new RegExp('\\b' + escapeRegExp(request.term), 'i');
           return value.match(regexp);
         }).slice(0, maxLength));
