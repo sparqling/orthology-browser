@@ -15,20 +15,14 @@ let selectedProteins = localStorage.getObject('selectedProteins') || {};
 function queryBySpang(queryUrl, target_end, param, callback) {
   spang.proxy = 'https://spang.dbcls.jp/sparql-proxy';
   $.get(queryUrl, (query) => {
-    spang.query(query, target_end ? target_end : endpoint, {
-      param: param,
-      format: 'json'
-    }, (error, status, result) => {
+    spang.query(query, target_end ? target_end : endpoint, { param: param, format: 'json'}, (error, status, result) => {
       let resultJson;
       try {
         resultJson = JSON.parse(result);
       } catch (e) {
         console.log(e);
         resultJson = {
-          results:
-            {
-              bindings: {}
-            }
+          results:{ bindings: {} }
         };
       }
       callback(resultJson);
@@ -48,7 +42,6 @@ function dbpedia_uri(taxonName) {
   } else if (taxonName == 'Pan') {
     return {name: 'Pan_(genus)', uri: '<http://dbpedia.org/resource/Pan_(genus)>'};
   }
-
 
   let matched = taxonName.match(/^[^\(]+/);
   if(matched)
@@ -72,18 +65,16 @@ function showDbpediaImage(taxa) {
       $(`.row-image-${taxon.up_id}`).each(function() { this.setAttribute('href', cache) });
       $(`.image-${taxon.up_id}`).prop('src', cache);
     } else {
-      queryBySpang(`sparql/dbpedia_thumbnails.rq`, dbpedia_endpoint, {
-          taxon: dbpedia_uri(taxon.organism_name),
-        }, (res) => {
-          let thumbnailUri = res.results.bindings[0]?.image.value;
-          if(thumbnailUri) {
-            $(`.row-image-${taxon.up_id}`).each(function() { this.setAttribute('href', thumbnailUri) });
-            $(`.image-${taxon.up_id}`).prop('src', thumbnailUri);
-          }
-          mapTaxIdToThumbnail[taxon.genome_taxid] = thumbnailUri ?? '';
-        });
+      queryBySpang(`sparql/dbpedia_thumbnails.rq`, dbpedia_endpoint, { taxon: dbpedia_uri(taxon.organism_name) }, (res) => {
+        let thumbnailUri = res.results.bindings[0]?.image.value;
+        if(thumbnailUri) {
+          $(`.row-image-${taxon.up_id}`).each(function() { this.setAttribute('href', thumbnailUri) });
+          $(`.image-${taxon.up_id}`).prop('src', thumbnailUri);
+        }
+        mapTaxIdToThumbnail[taxon.genome_taxid] = thumbnailUri ?? '';
+      });
     }
-  })
+  });
 }
 
 $(document).on('mouseover', '.table-image', (e) => {
@@ -108,7 +99,6 @@ $(document).on('click', '#clear-btn', (e) => {
     window.location.reload();
   }
 });
-
 
 function hideTooltip(target) {
   d3.select(target).classed("cell-hover", false);
@@ -139,7 +129,6 @@ function updateSelectedCount() {
   $("#selected-proteome-label").html(`<b>${Object.keys(selectedTaxa).length}</b> proteomes`);
   $("#selected-protein-label").html(`<b>${Object.keys(selectedProteins).length}</b> proteins`);
 }
-
 
 $.tablesorter.addParser({
   id: "fancyNumber",
