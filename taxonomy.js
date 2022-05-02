@@ -540,8 +540,7 @@ function updateSelected() {
   showDbpediaImage(taxonList);
 }
 
-function showProteomes(proteomeMap) {
-  const proteomes = Object.values(proteomeMap);
+function showProteomes(proteomes) {
 
   showProteomeTable(proteomes, {
     allSelected: false,
@@ -606,7 +605,7 @@ function show_genome_list(rank, taxon_name, taxid, genome_type) {
       }
     }
     showCounts(taxon_name, count, count_reference);
-    showProteomes(proteomeMap);
+    showProteomes(Object.values(proteomeMap));
   });
 }
 
