@@ -30,7 +30,6 @@ function init() {
   $('#tags').focus();
 }
 
-
 $(function () {
   $('#tags').autocomplete({
     source: (request, response) => {
