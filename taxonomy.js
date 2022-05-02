@@ -173,29 +173,20 @@ function show_contents(taxon_name, display_name = null, push_state = true) {
 
   let lang = document.querySelector('#language-selector').value;
 
-  // Get tax ID
-  let taxid;
-  let rank;
-
   if (push_state)
     history.pushState({taxon_name, display_name}, taxon_name, `?taxon_name=${taxon_name}&display_name=${display_name}`)
 
   queryBySpang(`${sparqlDir}/scientific_name_to_taxid.rq`, {taxon_name}, function (data) {
     data['results']['bindings'][0]['taxon']['value'].match(/(\d+)$/);
-    taxid = RegExp.$1;
-    rank = data['results']['bindings'][0]['rank']['value'].replace(/.*\//, '');
-
-    // Show tables
+    const taxid = RegExp.$1;
     show_hierarchy(taxid, genome_type, lang);
     show_dbpedia(taxon_name, taxid, lang);
     show_genome_comparison(taxid);
     show_specific_genes(taxid);
-    show_genome_list(rank, taxon_name, taxid, genome_type);
+    showProteomesInTaxon(taxon_name, taxid);
     $('#details').attr('border', '1');
     updateSelected();
-    // Show main taxon name
-    let html = `<h3><i>${taxon_name}</i> (Taxonomy ID: ${taxid})</h3>`;
-    $('#main_taxon_name_div').html(html);
+    $('#main_taxon_name_div').html(`<h3><i>${taxon_name}</i> (Taxonomy ID: ${taxid})</h3>`);
     $('#result-area').show();
   });
 
@@ -557,7 +548,7 @@ function showProteomes(proteomes) {
   showDbpediaImage(proteomes);
 }
 
-function show_genome_list(rank, taxon_name, taxid, genome_type) {
+function showProteomesInTaxon(taxon_name, taxid) {
 
   queryBySpang(`${sparqlDir}/taxon_to_search_genomes.rq`, {target_taxid: taxid}, function (data) {
     let data_p = data['results']['bindings'];
