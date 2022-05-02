@@ -542,7 +542,8 @@ function updateSelected() {
 
 function showProteomes(proteomeMap) {
   const proteomes = Object.values(currentGenomeMap);
-  showProteomeTable(Object.values(proteomes), {
+
+  showProteomeTable(proteomes, {
     allSelected: false,
     cssSelector: "#details",
     extraOptions: {
