@@ -1,12 +1,11 @@
-
-function get_taxon_table_row(genome_record) {
+function getProteomeTableRow(proteome) {
   let assembly_url = '';
 
-  let checkedAttr = selectedTaxa[genome_record.up_id] !== undefined ? "checked" : "";
-  if (genome_record.assembly) {
-    assembly_url = 'https://ncbi.nlm.nih.gov/assembly/' + genome_record.assembly;
+  let checkedAttr = selectedTaxa[proteome.up_id] !== undefined ? "checked" : "";
+  if (proteome.assembly) {
+    assembly_url = 'https://ncbi.nlm.nih.gov/assembly/' + proteome.assembly;
   }
-  let scientific_name = genome_record.organism_name;
+  let scientific_name = proteome.organism_name;
   let common_name = '';
   if (scientific_name.match(/(.*)?(\(.*)/)) {
     scientific_name = RegExp.$1;
@@ -14,26 +13,26 @@ function get_taxon_table_row(genome_record) {
   }
   let name = `<i>${scientific_name}</i> ${common_name}`;
 
-  let list_html = `<tr class="table-row-${genome_record.up_id}">`;
-  list_html += `<td align="center"><input type="checkbox" class="add_genome" data-codename="${genome_record.up_id}" ${checkedAttr} title="Select"></td>`;
-  if (genome_record.types.match(/Reference_Proteome/)) {
+  let list_html = `<tr class="table-row-${proteome.up_id}">`;
+  list_html += `<td align="center"><input type="checkbox" class="add_genome" data-codename="${proteome.up_id}" ${checkedAttr} title="Select"></td>`;
+  if (proteome.types.match(/Reference_Proteome/)) {
     list_html += '<td align="center"> &#9675 </td>';
   } else {
     list_html += '<td> </td>';
   }
-  list_html += `<td style="text-align: center;"><img class="table-image image-${genome_record.up_id}" style="height: 25px;" data-title="${genome_record.up_id}"></td>`;
-  list_html += `<td class="proteome-id-td"><a href="${genome_record.up_id_url}" target="_blank">${genome_record.up_id}</a></td>`;
-  list_html += `<td><a href="${assembly_url}" target="_blank">${genome_record.assembly}</a></td>`;
-  list_html += '<td>' + genome_record.genome_taxid + '</td>';
+  list_html += `<td style="text-align: center;"><img class="table-image image-${proteome.up_id}" style="height: 25px;" data-title="${proteome.up_id}"></td>`;
+  list_html += `<td class="proteome-id-td"><a href="${proteome.up_id_url}" target="_blank">${proteome.up_id}</a></td>`;
+  list_html += `<td><a href="${assembly_url}" target="_blank">${proteome.assembly}</a></td>`;
+  list_html += '<td>' + proteome.genome_taxid + '</td>';
   list_html += '<td class="genome_name">' + name + '</td>';
-  list_html += '<td align="right">' + genome_record.n_genes.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
-  list_html += '<td align="right">' + genome_record.n_isoforms.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
-  list_html += '<td align="right">' + genome_record.cpd_label + '</td>';
-  list_html += '<td align="right">' + genome_record.busco_complete + '</td>';
-  list_html += '<td align="right">' + genome_record.busco_single + '</td>';
-  list_html += '<td align="right">' + genome_record.busco_multi + '</td>';
-  list_html += '<td align="right">' + genome_record.busco_fragmented + '</td>';
-  list_html += '<td align="right">' + genome_record.busco_missing + '</td>';
+  list_html += '<td align="right">' + proteome.n_genes.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
+  list_html += '<td align="right">' + proteome.n_isoforms.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</td>';
+  list_html += '<td align="right">' + proteome.cpd_label + '</td>';
+  list_html += '<td align="right">' + proteome.busco_complete + '</td>';
+  list_html += '<td align="right">' + proteome.busco_single + '</td>';
+  list_html += '<td align="right">' + proteome.busco_multi + '</td>';
+  list_html += '<td align="right">' + proteome.busco_fragmented + '</td>';
+  list_html += '<td align="right">' + proteome.busco_missing + '</td>';
   list_html += '</tr>';
 
   return list_html;
@@ -52,7 +51,6 @@ function get_go_table_row(protein_record) {
   list_html += '</tr>';
   return list_html;
 }
-
 
 function showProteomes(proteomes, { allSelected = true,
                                  cssSelector = '#selected-proteomes',
@@ -78,7 +76,7 @@ function showProteomes(proteomes, { allSelected = true,
     '</tr></thead>';
 
   for (let proteome of proteomes) {
-    html += '<tr>' + get_taxon_table_row(proteome) + '</tr>';
+    html += '<tr>' + getProteomeTableRow(proteome) + '</tr>';
   }
 
   $(cssSelector).html(html)
