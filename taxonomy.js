@@ -540,7 +540,7 @@ function updateSelected() {
   showDbpediaImage(taxonList);
 }
 
-function show_genomes_table(genomes, count_html) {
+function showProteomes(genomes, count_html) {
   showProteomeTable(Object.values(genomes), {
     allSelected: false,
     cssSelector: "#details",
@@ -618,7 +618,7 @@ function show_genome_list(rank, taxon_name, taxid, genome_type) {
     let count_html = `<br><font size="2"><b><i>${taxon_name}</i>: ${count} ${count_unit}</b>`;
     count_html += ` (including <b>${count_reference}</b> ${reference_count_unit})</font>`;
     count_html += `<label style="margin-left: 20px; margin-bottom: 10px">Filter by: </label><input id="detail-filter" data-column="all" type="search" style="margin-right: 30px;">`;
-    show_genomes_table(Object.values(currentGenomeMap), count_html);
+    showProteomes(Object.values(currentGenomeMap), count_html);
   });
 
   return count;
