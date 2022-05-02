@@ -188,11 +188,6 @@ function show_contents(name, display_name = null, push_state = true) {
     return;
   currentName = name;
 
-  let genome_type = 'CompleteGenome';
-  if ($('#draft').prop('checked')) {
-    genome_type = 'Genome';
-  }
-
   let lang = document.querySelector('#language-selector').value;
 
   // Get tax ID

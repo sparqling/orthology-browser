@@ -166,11 +166,6 @@ function show_contents(taxon_name, display_name = null, push_state = true) {
     return;
   currentTaxonName = taxon_name;
 
-  let genome_type = 'CompleteGenome';
-  if ($('#draft').prop('checked')) {
-    genome_type = 'Genome';
-  }
-
   let lang = document.querySelector('#language-selector').value;
 
   if (push_state)
@@ -179,7 +174,7 @@ function show_contents(taxon_name, display_name = null, push_state = true) {
   queryBySpang(`${sparqlDir}/scientific_name_to_taxid.rq`, {taxon_name}, function (data) {
     data['results']['bindings'][0]['taxon']['value'].match(/(\d+)$/);
     const taxid = RegExp.$1;
-    show_hierarchy(taxid, genome_type, lang);
+    show_hierarchy(taxid, lang);
     show_dbpedia(taxon_name, taxid, lang);
     show_genome_comparison(taxid);
     show_specific_genes(taxid);
@@ -215,7 +210,7 @@ function dbpedia_name(taxon_name) {
   return {name: dbpedia_name, uri: 'dbpedia:' + dbpedia_name};
 }
 
-function show_hierarchy(taxid, genome_type, lang) {
+function show_hierarchy(taxid, lang) {
   let list = '';
   let table_upper = [];
   let table_lower = [];
