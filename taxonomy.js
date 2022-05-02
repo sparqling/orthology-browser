@@ -536,12 +536,12 @@ function updateSelected() {
   updateSelectedCount();
   let taxonList =  Object.values(selectedTaxa);
   $('#proteome-counter')[0].innerHTML = `You selected <b>${taxonList.length}</b> proteomes`;
-  show_genomes(taxonList);
+  showProteomes(taxonList);
   showDbpediaImage(taxonList);
 }
 
 function show_genomes_table(genomes, count_html) {
-  show_genomes(Object.values(genomes),  
+  showProteomes(Object.values(genomes),  
      { allSelected: false,
        cssSelector: "#details", 
        extraOptions: {

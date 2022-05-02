@@ -54,7 +54,7 @@ function get_go_table_row(protein_record) {
 }
 
 
-function show_genomes(genomes, { allSelected = true,
+function showProteomes(proteomes, { allSelected = true,
                                  cssSelector = '#selected-proteomes',
                                  extraOptions = {}
                                } = {}
@@ -77,8 +77,8 @@ function show_genomes(genomes, { allSelected = true,
     '<th class="thin">miss.</th>' +
     '</tr></thead>';
 
-  for (let genome of genomes) {
-    html += '<tr>' + get_taxon_table_row(genome) + '</tr>';
+  for (let proteome of proteomes) {
+    html += '<tr>' + get_taxon_table_row(proteome) + '</tr>';
   }
 
   $(cssSelector).html(html)

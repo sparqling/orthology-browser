@@ -381,7 +381,7 @@ function renderChart() {
       taxaForTable.push(mapTaxIdToTaxa[taxon.id])
     }
   }
-  show_genomes(taxaForTable);
+  showProteomes(taxaForTable);
 
   matrix = [];
   
