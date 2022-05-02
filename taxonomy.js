@@ -2,7 +2,7 @@ let haystack = [];
 let currentTaxonName = null;
 let scientificNameMap = {}; // Display name => Scientific name
 let displayNameMap = {}; // Scientific name => Display name
-let currentGenomeMap = {};
+let proteomeMap = {};
 const sparqlDir = 'sparql/taxonomy';
 const commonSparqlDir = 'sparql/';
 
@@ -118,7 +118,7 @@ $(function () {
 
     if(selected) {
       // Add the item
-      selectedTaxa[proteome_id] = currentGenomeMap[proteome_id];
+      selectedTaxa[proteome_id] = proteomeMap[proteome_id];
     }
     else {
       // Delete the item
@@ -141,7 +141,7 @@ $(function () {
 
       if (selected) {
         // Add the item
-        selectedTaxa[proteome_id] = currentGenomeMap[proteome_id];
+        selectedTaxa[proteome_id] = proteomeMap[proteome_id];
         $(each_checkbox).prop("checked", true);
       } else {
         // Delete the item
@@ -541,7 +541,7 @@ function updateSelected() {
 }
 
 function showProteomes(proteomeMap) {
-  const proteomes = Object.values(currentGenomeMap);
+  const proteomes = Object.values(proteomeMap);
 
   showProteomeTable(proteomes, {
     allSelected: false,
@@ -565,7 +565,7 @@ function show_genome_list(rank, taxon_name, taxid, genome_type) {
 
     const count = data_p.length;
     let count_reference = 0;
-    currentGenomeMap = {};
+    proteomeMap = {};
     for (let i = 0; i < count; i++) {
       let row = data_p[i];
 
@@ -584,7 +584,7 @@ function show_genome_list(rank, taxon_name, taxid, genome_type) {
       const busco_fragmented = row['busco_fragmented'] ? row['busco_fragmented']['value'] : '';
       const busco_missing = row['busco_missing'] ? row['busco_missing']['value'] : '';
       const assembly = row['assembly'] ? row['assembly']['value'] : '';
-      currentGenomeMap[up_id] = {
+      proteomeMap[up_id] = {
         genome_taxid,
         up_id_url,
         up_id,
@@ -606,7 +606,7 @@ function show_genome_list(rank, taxon_name, taxid, genome_type) {
       }
     }
     showCounts(taxon_name, count, count_reference);
-    showProteomes(currentGenomeMap);
+    showProteomes(proteomeMap);
   });
 }
 
