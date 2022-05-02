@@ -559,13 +559,11 @@ function showProteomes(proteomeMap) {
 }
 
 function show_genome_list(rank, taxon_name, taxid, genome_type) {
-  let count = 0;
 
   queryBySpang(`${sparqlDir}/taxon_to_search_genomes.rq`, {target_taxid: taxid}, function (data) {
     let data_p = data['results']['bindings'];
-    count = data_p.length;
 
-    let list_html = '';
+    const count = data_p.length;
     let count_reference = 0;
     currentGenomeMap = {};
     for (let i = 0; i < count; i++) {
@@ -607,6 +605,12 @@ function show_genome_list(rank, taxon_name, taxid, genome_type) {
         count_reference++;
       }
     }
+    showCounts(taxon_name, count, count_reference);
+    showProteomes(currentGenomeMap);
+  });
+}
+
+function showCounts(taxon_name, count, count_reference) {
     let count_unit = 'proteome';
     if (count >= 2) {
       count_unit = 'proteomes';
@@ -619,10 +623,6 @@ function show_genome_list(rank, taxon_name, taxid, genome_type) {
     count_html += ` (including <b>${count_reference}</b> ${reference_count_unit})</font>`;
     count_html += `<label style="margin-left: 20px; margin-bottom: 10px">Filter by: </label><input id="detail-filter" data-column="all" type="search" style="margin-right: 30px;">`;
     $('#counter_div').html(count_html);
-    showProteomes(currentGenomeMap);
-  });
-
-  return count;
 }
 
 function load_url_state(push_state = true) {
