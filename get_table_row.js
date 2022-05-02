@@ -21,11 +21,6 @@ function get_taxon_table_row(genome_record) {
   } else {
     list_html += '<td> </td>';
   }
-  // if (types.match(/Representative_Proteome/)) {
-  //   list_html += '<td align="center"> &#9675 </td>';
-  // } else {
-  //   list_html += '<td> </td>';
-  // }
   list_html += `<td style="text-align: center;"><img class="table-image image-${genome_record.up_id}" style="height: 25px;" data-title="${genome_record.up_id}"></td>`;
   list_html += `<td class="proteome-id-td"><a href="${genome_record.up_id_url}" target="_blank">${genome_record.up_id}</a></td>`;
   list_html += `<td><a href="${assembly_url}" target="_blank">${genome_record.assembly}</a></td>`;
@@ -59,14 +54,15 @@ function get_go_table_row(protein_record) {
 }
 
 
-function show_genomes(genomes, {allSelected = true, cssSelector = '#selected-proteomes', extraOptions = {} } = {}) {
-  let total = 0;
-
+function show_genomes(genomes, { allSelected = true,
+                                 cssSelector = '#selected-proteomes',
+                                 extraOptions = {}
+                               } = {}
+                     ) {
   let html = '<thead><tr>' +
     `<th align="center" style="text-align: center"><input type="checkbox" class="add_genome_all" ${allSelected ? 'checked' : ''} title="Select all"></th>` +
     '<th>Ref</th>' +
     '<th>Image</th>' +
-    // '<th>Rep</th>' +
     '<th>Proteome ID</th>' +
     '<th>Genome ID</th>' +
     '<th>Tax ID</th>' +
@@ -81,27 +77,23 @@ function show_genomes(genomes, {allSelected = true, cssSelector = '#selected-pro
     '<th class="thin">miss.</th>' +
     '</tr></thead>';
 
-
-  for(let genome of genomes) {
+  for (let genome of genomes) {
     html += '<tr>' + get_taxon_table_row(genome) + '</tr>';
   }
-  html += '';
 
   $(cssSelector).html(html)
   
-  let options = {
+  let sorterOptions = {
     headers: {
-      0: {sorter:false},
-      7: {sorter:'fancyNumber'},
-      8: {sorter:'fancyNumber'},
-    },
+      0: { sorter: false },
+      7: { sorter: 'fancyNumber' },
+      8: { sorter: 'fancyNumber' }
+    }
   };
-  options = Object.assign(options, extraOptions);
+  sorterOptions = Object.assign(sorterOptions, extraOptions);
   
   $(function() {
-    $(cssSelector).tablesorter(
-      options
-    );
+    $(cssSelector).tablesorter(sorterOptions);
   });
 }
 
