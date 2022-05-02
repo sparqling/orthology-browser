@@ -536,22 +536,23 @@ function updateSelected() {
   updateSelectedCount();
   let taxonList =  Object.values(selectedTaxa);
   $('#proteome-counter')[0].innerHTML = `You selected <b>${taxonList.length}</b> proteomes`;
-  showProteomes(taxonList);
+  showProteomeTable(taxonList);
   showDbpediaImage(taxonList);
 }
 
 function show_genomes_table(genomes, count_html) {
-  showProteomes(Object.values(genomes),  
-     { allSelected: false,
-       cssSelector: "#details", 
-       extraOptions: {
-         widgetOptions: {
-           filter_columnFilters: false,
-           filter_external: '#detail-filter',
-         },
-         widgets: ["filter"],
-       }
+  showProteomeTable(Object.values(genomes), {
+    allSelected: false,
+    cssSelector: "#details",
+    extraOptions: {
+      widgetOptions: {
+        filter_columnFilters: false,
+        filter_external: '#detail-filter'
+      },
+      widgets: ["filter"]
+    }
   });
+
   $('#counter_div').html(count_html);
   
   showDbpediaImage(genomes);

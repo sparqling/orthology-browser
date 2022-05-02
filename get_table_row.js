@@ -52,7 +52,7 @@ function get_go_table_row(protein_record) {
   return html;
 }
 
-function showProteomes(proteomes, { allSelected = true,
+function showProteomeTable(proteomes, { allSelected = true,
                                  cssSelector = '#selected-proteomes',
                                  extraOptions = {}
                                } = {}
