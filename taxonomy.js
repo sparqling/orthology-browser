@@ -1,4 +1,4 @@
-let haystack = [];
+let candidates = [];
 let currentTaxonName = null;
 let scientificNameMap = {}; // Display name => Scientific name
 let displayNameMap = {}; // Scientific name => Display name
@@ -11,7 +11,7 @@ function escapeRegExp(string) {
 }
 
 function init() {
-  haystack = [];
+  candidates = [];
   $.ajaxSetup({async: false});
 
   queryBySpang(`${sparqlDir}/get_taxa_as_candidates.rq`, {}, (data) => {
@@ -23,7 +23,7 @@ function init() {
         scientificNameMap[entry] = binding.name.value;
         displayNameMap[binding.name.value] = entry;
       }
-      haystack.push(entry);
+      candidates.push(entry);
     }
   });
 
@@ -35,7 +35,7 @@ $(function () {
   $('#tags').autocomplete({
     source: (request, response) => {
       response(
-        $.grep(haystack, (value) => {
+        $.grep(candidates, (value) => {
           let regexp = new RegExp('\\b' + escapeRegExp(request.term), 'i');
           return value.match(regexp);
         })
@@ -171,7 +171,7 @@ function show_contents(taxon_name, display_name = null, push_state = true) {
   if (push_state)
     history.pushState({taxon_name, display_name}, taxon_name, `?taxon_name=${taxon_name}&display_name=${display_name}`)
 
-  queryBySpang(`${sparqlDir}/scientific_name_to_taxid.rq`, {taxon_name}, function (data) {
+  queryBySpang(`${sparqlDir}/scientific_name_to_taxid.rq`, {taxon_name}, (data) => {
     data['results']['bindings'][0]['taxon']['value'].match(/(\d+)$/);
     const taxid = RegExp.$1;
     show_hierarchy(taxid, lang);
@@ -545,7 +545,7 @@ function showProteomes(proteomes) {
 
 function showProteomesInTaxon(taxon_name, taxid) {
 
-  queryBySpang(`${sparqlDir}/taxon_to_search_genomes.rq`, {target_taxid: taxid}, function (data) {
+  queryBySpang(`${sparqlDir}/taxon_to_search_genomes.rq`, {target_taxid: taxid}, (data) => {
     let data_p = data['results']['bindings'];
 
     const count = data_p.length;
