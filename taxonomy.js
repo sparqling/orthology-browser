@@ -540,8 +540,9 @@ function updateSelected() {
   showDbpediaImage(taxonList);
 }
 
-function showProteomes(genomes, count_html) {
-  showProteomeTable(Object.values(genomes), {
+function showProteomes(proteomeMap) {
+  const proteomes = Object.values(currentGenomeMap);
+  showProteomeTable(Object.values(proteomes), {
     allSelected: false,
     cssSelector: "#details",
     extraOptions: {
@@ -553,9 +554,7 @@ function showProteomes(genomes, count_html) {
     }
   });
 
-  $('#counter_div').html(count_html);
-  
-  showDbpediaImage(genomes);
+  showDbpediaImage(proteomes);
 }
 
 function show_genome_list(rank, taxon_name, taxid, genome_type) {
@@ -618,7 +617,8 @@ function show_genome_list(rank, taxon_name, taxid, genome_type) {
     let count_html = `<br><font size="2"><b><i>${taxon_name}</i>: ${count} ${count_unit}</b>`;
     count_html += ` (including <b>${count_reference}</b> ${reference_count_unit})</font>`;
     count_html += `<label style="margin-left: 20px; margin-bottom: 10px">Filter by: </label><input id="detail-filter" data-column="all" type="search" style="margin-right: 30px;">`;
-    showProteomes(Object.values(currentGenomeMap), count_html);
+    $('#counter_div').html(count_html);
+    showProteomes(currentGenomeMap);
   });
 
   return count;
