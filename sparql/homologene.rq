@@ -1,0 +1,22 @@
+#!/usr/bin/env spang2
+# @endpoint https://orth.dbcls.jp/sparql
+# @option --time
+# @param genes=ncbigene:34
+
+PREFIX orth: <http://purl.org/net/orth#>
+PREFIX taxid: <http://identifiers.org/taxonomy/>
+PREFIX ncbigene: <http://identifiers.org/ncbigene/>
+
+SELECT DISTINCT (?member_human AS ?uniprot_human) ?taxid (?member AS ?uniprot)
+WHERE {
+  ?cluster a orth:OrthologsCluster ;
+      orth:hasHomologousMember+ ?member_human, ?member .
+  ?member_human a orth:Gene ;
+      orth:taxon taxid:9606 .
+  ?member a orth:Gene ;
+      orth:taxon $taxid .
+  # VALUES ?member_human { ${genes} }
+  VALUES ?member_human { ncbigene:367 }
+}
+# ORDER BY ?member_human ?taxid
+ORDER BY ?uniprot_human ?taxid
